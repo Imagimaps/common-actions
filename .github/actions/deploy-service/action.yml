@@ -39,13 +39,13 @@ runs:
     - name: Create Fargate Service
       uses: Imagimaps/common-actions/.github/actions/deploy-tf@main
       with:
+        environment: ${{ inputs.environment }}
         tf_module_name: ecs-service
         tf_module_dir: ${{ env.ACTION_PATH }}/tf/ecs-service
         tf_workspace: services
         tf_vars: |
           service_name=${{ inputs.service_name }}
-          environment=${{ inputs.environment }}
           environment_short_name=${{ inputs.environment_short_name }}
-          aws_account_id=${{ inputs.aws_account_id }}
-          aws_region=${{ inputs.aws_region }}
-          aws_role_arn=${{ inputs.aws_role_arn }}
+        aws_role_arn: ${{ inputs.aws_role_arn }}
+        aws_account_id: ${{ inputs.aws_account_id }}
+        aws_region: ${{ inputs.aws_region }}

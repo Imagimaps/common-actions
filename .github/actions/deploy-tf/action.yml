@@ -39,8 +39,8 @@ runs:
       id: start
       shell: bash
       run: |
-        workflow_start_ts=$(date +%s)
-        echo "ts=$workflow_start_ts" >> $GITHUB_OUTPUT
+        action_start_ts=$(date +%s)
+        echo "ts=$action_start_ts" >> $GITHUB_OUTPUT
 
     - name: Checkout code
       uses: actions/checkout@v4
