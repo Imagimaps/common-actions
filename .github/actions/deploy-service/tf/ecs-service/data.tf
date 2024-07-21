@@ -3,7 +3,7 @@ data "aws_caller_identity" "current" {}
 data "aws_region" "current" {}
 
 data "aws_ecs_cluster" "ecs_fargate" {
-  cluster_name = "platform-${var.environment}-fargate"
+  cluster_name = "${var.project}-${var.environment}-fargate"
 }
 
 data "aws_lb" "alb" {
