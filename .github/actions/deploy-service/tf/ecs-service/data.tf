@@ -10,6 +10,13 @@ data "aws_ecs_cluster" "ecs_fargate" {
   cluster_name = "platform-${var.environment}-fargate"
 }
 
+data "aws_lb" "alb" {
+  tags = {
+    Environment = var.environment
+    Project     = var.project
+  }
+}
+
 data "aws_vpc" "vpc" {
   tags = {
     Environment = var.environment
