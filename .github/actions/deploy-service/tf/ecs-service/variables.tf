@@ -50,13 +50,13 @@ variable "task_memory" {
 }
 
 variable "container_cpu" {
-  type    = string
-  default = "128"
+  type    = number
+  default = 128
 }
 
 variable "container_memory" {
-  type    = string
-  default = "512"
+  type    = number
+  default = 512
 }
 
 variable "container_port" {

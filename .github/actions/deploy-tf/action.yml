@@ -56,14 +56,9 @@ runs:
       id: oidc_token
       shell: bash
       run: |
-        echo "fetching OIDC token from: $ACTIONS_ID_TOKEN_REQUEST_URL&audience=sts.amazonaws.com"
         web_identity_token=$(curl \
-          -v \
           -H "Authorization: Bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" \
           "$ACTIONS_ID_TOKEN_REQUEST_URL&audience=sts.amazonaws.com")
-          # --data-urlencode "audience=sts.amazonaws.com" \
-        echo "fetched web_identity_token"
-        echo "web_identity_token=$web_identity_token"
         echo $web_identity_token | jq -r '.value' >> web_identity_token.txt
         token_path=$(pwd)/web_identity_token.txt
         echo "AWS_WEB_IDENTITY_TOKEN_FILE=$token_path" >> $GITHUB_ENV
