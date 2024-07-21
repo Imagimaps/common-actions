@@ -24,7 +24,7 @@ provider "aws" {
   assume_role_with_web_identity {
     role_arn                = "arn:aws:iam::${var.artifacts_aws_account_id}:role/platform/platform-deploy"
     session_name            = "ECS-Service-Deploy"
-    web_identity_token_file = ${var.web_identity_token_file}
+    web_identity_token_file = var.web_identity_token_file
   }
 }
 
