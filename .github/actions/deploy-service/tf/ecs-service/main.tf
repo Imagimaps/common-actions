@@ -1,3 +1,28 @@
+resource "aws_lb_target_group" "service_target_group" {
+  name        = "ecs-alb-target-group"
+  target_type = "ip"
+  port        = 80
+  protocol    = "HTTP"
+  vpc_id      = data.aws_vpc.vpc.id
+
+  health_check {
+    port     = 80
+    protocol = "HTTP"
+    path     = "/health"
+  }
+}
+
+resource "aws_lb_listener" "ecs_alb_listener_default" {
+  load_balancer_arn = aws_lb.ecs_alb.arn
+  port              = "80"
+  protocol          = "HTTP"
+
+  default_action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.service_target_group.arn
+  }
+}
+
 resource "aws_ecs_task_definition" "service" {
   family                   = "${var.project}-${var.service_name}"
   network_mode             = "awsvpc"
