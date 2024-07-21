@@ -1,5 +1,5 @@
 resource "aws_lb_target_group" "service_target_group" {
-  name        = "ecs-alb-target-group"
+  name        = "${var.project}-${var.service_name}-alb-tg"
   target_type = "ip"
   port        = 80
   protocol    = "HTTP"
