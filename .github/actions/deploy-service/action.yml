@@ -38,7 +38,6 @@ runs:
       run: |
         echo "Deloying Service [${{ inputs.service_name }}]"
         echo "ACTION_PATH=$(realpath ${{ github.action_path }})" >> $GITHUB_ENV
-        env
 
     - name: Create Fargate Service
       uses: Imagimaps/common-actions/.github/actions/deploy-tf@main

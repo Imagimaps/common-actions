@@ -93,6 +93,7 @@ runs:
       shell: bash
       working-directory: ${{ inputs.tf_module_dir }}
       run: |
+        env
         set +e
         terraform plan \
           -var="aws_region=${{ inputs.aws_region }}" \
