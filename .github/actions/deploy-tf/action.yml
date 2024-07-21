@@ -57,7 +57,11 @@ runs:
       shell: bash
       run: |
         echo "Curl Version: $(curl --version)"
-        web_identity_token=$(curl -H "Authorization: Bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" --data-urlencode "audience=sts.amazonaws.com" "$ACTIONS_ID_TOKEN_REQUEST_URL")
+        web_identity_token=$(curl \
+          -v \
+          -H "Authorization: Bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" \
+          --data-urlencode "audience=sts.amazonaws.com" \
+          "$ACTIONS_ID_TOKEN_REQUEST_URL")
         echo "fetched web_identity_token"
         echo "web_identity_token=$web_identity_token"
         echo $web_identity_token | jq -r '.value' >> web_identity_token.txt
