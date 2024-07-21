@@ -56,12 +56,12 @@ runs:
       id: oidc_token
       shell: bash
       run: |
-        echo "Curl Version: $(curl --version)"
+        echo "fetching OIDC token from: $ACTIONS_ID_TOKEN_REQUEST_URL&audience=sts.amazonaws.com"
         web_identity_token=$(curl \
           -v \
           -H "Authorization: Bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" \
-          --data-urlencode "audience=sts.amazonaws.com" \
-          "$ACTIONS_ID_TOKEN_REQUEST_URL")
+          "$ACTIONS_ID_TOKEN_REQUEST_URL&audience=sts.amazonaws.com")
+          # --data-urlencode "audience=sts.amazonaws.com" \
         echo "fetched web_identity_token"
         echo "web_identity_token=$web_identity_token"
         echo $web_identity_token | jq -r '.value' >> web_identity_token.txt
