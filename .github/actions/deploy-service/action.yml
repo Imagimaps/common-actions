@@ -16,6 +16,9 @@ inputs:
   aws_account_id:
     description: The AWS account ID where the ECR repository is located
     required: true
+  artifacts_aws_account_id:
+    description: The AWS account ID where the ECR repository is located
+    required: true
   aws_region:
     description: The region where the ECR repository is located
     required: false
@@ -46,6 +49,7 @@ runs:
         tf_vars: |
           service_name=${{ inputs.service_name }}
           environment_short_name=${{ inputs.environment_short_name }}
+          artifacts_aws_account_id=${{ inputs.artifacts_aws_account_id }}
         aws_role_arn: ${{ inputs.aws_role_arn }}
         aws_account_id: ${{ inputs.aws_account_id }}
         aws_region: ${{ inputs.aws_region }}

@@ -46,10 +46,20 @@ runs:
       uses: actions/checkout@v4
 
     - name: Login to AWS
+      id: login-aws
       uses: aws-actions/configure-aws-credentials@v4
       with:
         role-to-assume: ${{ inputs.aws_role_arn }}
         aws-region: ${{ inputs.aws_region }}
+
+    - name: Get Github OIDC Token
+      id: oidc_token
+      shell: bash
+      run: |
+        web_identity_token=$(curl -H "Authorization: Bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" "$ACTIONS_ID_TOKEN_REQUEST_URL")
+        echo $web_identity_token >> web_identity_token.txt
+        token_path=$(pwd)/web_identity_token.txt
+        echo "AWS_WEB_IDENTITY_TOKEN_FILE=$token_path" >> $GITHUB_ENV
 
     - name: Activate TF Workspace
       shell: bash

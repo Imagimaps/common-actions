@@ -3,6 +3,10 @@ variable "aws_region" {
   default = "ap-southeast-2"
 }
 
+variable "artifacts_aws_account_id" {
+  type = string
+}
+
 variable "project" {
   type = string
 }
