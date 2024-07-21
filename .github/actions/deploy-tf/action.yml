@@ -95,6 +95,7 @@ runs:
       run: |
         env
         set +e
+        export TF_VAR_web_identity_token_file=${{ env.AWS_WEB_IDENTITY_TOKEN_FILE }}
         terraform plan \
           -var="aws_region=${{ inputs.aws_region }}" \
           -var="project=imagimaps" \

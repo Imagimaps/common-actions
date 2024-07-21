@@ -3,6 +3,11 @@ variable "aws_region" {
   default = "ap-southeast-2"
 }
 
+variable "web_identity_token_file" {
+  type        = string
+  description = "The path to the web identity token file"
+}
+
 variable "artifacts_aws_account_id" {
   type = string
 }
