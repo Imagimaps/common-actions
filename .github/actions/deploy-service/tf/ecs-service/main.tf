@@ -27,8 +27,8 @@ resource "aws_ecs_task_definition" "service" {
   family                   = "${var.project}-${var.service_name}"
   network_mode             = "awsvpc"
   requires_compatibilities = ["FARGATE"]
-  task_role_arn            = data.aws_iam_role.ecr_read_only.arn
-  execution_role_arn       = data.aws_iam_role.ecr_read_only.arn
+  task_role_arn            = aws_iam_role.ecr_read_only.arn
+  execution_role_arn       = aws_iam_role.ecr_read_only.arn
   # https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task_definition_parameters.html#task_size
   cpu    = var.task_cpu
   memory = var.task_memory

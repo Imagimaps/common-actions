@@ -1,4 +1,4 @@
-data "aws_iam_role" "ecr_read_only" {
+data "aws_ecr_repository" "service" {
   provider = aws.artifacts
-  name = "${var.service_name}-ecr-read-only"
+  name = "${var.project}/service/${var.service_name}"
 }
