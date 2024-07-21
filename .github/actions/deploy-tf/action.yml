@@ -98,6 +98,7 @@ runs:
         echo "debug: TF_VAR_web_identity_token_file=${TF_VAR_web_identity_token_file}"
         echo "debug: contents of TF_VAR_web_identity_token_file"
         cat $TF_VAR_web_identity_token_file
+        jq -R 'split(".") | .[0],.[1] | @base64d | fromjson' <<< $(cat "$TF_VAR_web_identity_token_file")
         echo "debug: end of contents of TF_VAR_web_identity_token_file"
         terraform plan \
           -var="aws_region=${{ inputs.aws_region }}" \

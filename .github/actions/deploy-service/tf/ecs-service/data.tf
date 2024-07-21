@@ -16,7 +16,7 @@ data "aws_lb" "alb" {
 data "aws_vpc" "vpc" {
   tags = {
     Environment = var.environment
-    Project     = "Imagimaps"
+    Project     = "imagimaps"
   }
 }
 
