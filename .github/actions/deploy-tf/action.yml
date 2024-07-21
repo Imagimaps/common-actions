@@ -56,6 +56,7 @@ runs:
       id: oidc_token
       shell: bash
       run: |
+        echo "Curl Version: $(curl --version)"
         web_identity_token=$(curl -H "Authorization: Bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" --data-urlencode "audience=sts.amazonaws.com" "$ACTIONS_ID_TOKEN_REQUEST_URL")
         echo $web_identity_token | jq -r '.value' >> web_identity_token.txt
         token_path=$(pwd)/web_identity_token.txt
