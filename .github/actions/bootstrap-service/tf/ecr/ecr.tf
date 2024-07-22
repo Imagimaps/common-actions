@@ -22,7 +22,9 @@ resource "aws_ecr_repository_policy" "policy" {
         "Action" : [
           "ecr:GetDownloadUrlForLayer",
           "ecr:BatchGetImage",
-          "ecr:BatchCheckLayerAvailability"
+          "ecr:BatchCheckLayerAvailability",
+          "ecr:DescribeImages",
+          "ecr:DescribeRepositories",
         ],
         "Condition" : {
           "StringEquals" : {
