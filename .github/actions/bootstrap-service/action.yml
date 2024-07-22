@@ -1,0 +1,54 @@
+name: Deploy Service
+description: Deploy a service to the platform
+inputs:
+  service_name:
+    description: The name of the service
+    required: true
+  environment:
+    description: The environment to deploy the service to
+    required: true
+  environment_short_name:
+    description: The short name of the environment
+    required: true
+  aws_role_arn:
+    description: The ARN of the role which can create repositories in ECR and push images to them
+    required: true
+  aws_account_id:
+    description: The AWS account ID where the ECR repository is located
+    required: true
+  artifacts_aws_account_id:
+    description: The AWS account ID where the ECR repository is located
+    required: true
+  aws_region:
+    description: The region where the ECR repository is located
+    required: false
+    default: ap-southeast-2
+outputs:
+  action_runtime:
+    description: The duration of the action in seconds
+    value: ${{ steps.end.outputs.runtime }}
+
+runs:
+  using: "composite"
+
+  steps:
+    - name: Initialise
+      id: start
+      shell: bash
+      run: |
+        echo "Deloying Service [${{ inputs.service_name }}]"
+        echo "ACTION_PATH=$(realpath ${{ github.action_path }})" >> $GITHUB_ENV
+
+    - name: Bootstrap Service Infrastructure
+      uses: Imagimaps/common-actions/.github/actions/deploy-tf@main
+      with:
+        environment: ${{ inputs.environment }}
+        tf_module_name: ecs-service
+        tf_module_dir: ${{ env.ACTION_PATH }}/tf/ecr
+        tf_workspace: platform
+        tf_vars: |
+          project=imagimaps
+          service_name=${{ inputs.service_name }}
+        aws_role_arn: ${{ inputs.aws_role_arn }}
+        aws_account_id: ${{ inputs.aws_account_id }}
+        aws_region: ${{ inputs.aws_region }}
