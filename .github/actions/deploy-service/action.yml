@@ -4,6 +4,9 @@ inputs:
   service_name:
     description: The name of the service
     required: true
+  secret_names:
+    description: Array of secret names to be bootstrapped
+    required: false
   environment:
     description: The environment to deploy the service to
     required: true
@@ -39,6 +42,22 @@ runs:
         echo "Deloying Service [${{ inputs.service_name }}]"
         echo "ACTION_PATH=$(realpath ${{ github.action_path }})" >> $GITHUB_ENV
 
+    - name: Bootstrap Service ${{ inputs.environment }} Secrets
+      if: ${{ inputs.secret_names != '' }}
+      uses: Imagimaps/common-actions/.github/actions/deploy-tf@main
+      with:
+        environment: ${{ inputs.environment }}
+        tf_module_name: secrets
+        tf_module_dir: ${{ env.ACTION_PATH }}/tf/secrets
+        tf_workspace: services
+        tf_vars: |
+          project=imagimaps
+          service_name=${{ inputs.service_name }}
+          secret_names=${{ inputs.secret_names }}
+        aws_role_arn: ${{ inputs.aws_role_arn }}
+        aws_account_id: ${{ inputs.aws_account_id }}
+        aws_region: ${{ inputs.aws_region }}
+
     - name: Create Fargate Service
       uses: Imagimaps/common-actions/.github/actions/deploy-tf@main
       with:
@@ -47,6 +66,7 @@ runs:
         tf_module_dir: ${{ env.ACTION_PATH }}/tf/ecs-service
         tf_workspace: services
         tf_vars: |
+          project=imagimaps
           service_name=${{ inputs.service_name }}
           environment_short_name=${{ inputs.environment_short_name }}
           artifacts_aws_account_id=${{ inputs.artifacts_aws_account_id }}
