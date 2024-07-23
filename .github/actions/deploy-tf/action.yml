@@ -82,7 +82,11 @@ runs:
         if [ -n "${{ inputs.tf_vars }}" ]; then
           while IFS= read -r line; do
             if [ -n "$line" ]; then
-              tf_vars="$tf_vars -var=\"$line\""
+              if [[ $line =~ ^\[.*\]$ ]]; then
+                tf_vars="$tf_vars $line"
+              else
+                tf_vars="$tf_vars -var=\"$line\""
+              fi
             fi
           done <<< "${{ inputs.tf_vars }}"
         fi
