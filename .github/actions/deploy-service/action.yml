@@ -58,6 +58,11 @@ runs:
         aws_account_id: ${{ inputs.aws_account_id }}
         aws_region: ${{ inputs.aws_region }}
 
+    - name: Setup Database
+      shell: bash
+      run: |
+        echo "Setting up database for ${{ inputs.service_name }}"
+
     - name: Create Fargate Service
       uses: Imagimaps/common-actions/.github/actions/deploy-tf@main
       with:

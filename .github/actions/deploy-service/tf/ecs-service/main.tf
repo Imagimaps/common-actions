@@ -1,3 +1,8 @@
+resource "aws_cloudwatch_log_group" "service_log_group" {
+  name              = "${var.project}/${var.service_name}/log-group"
+  retention_in_days = 7
+}
+
 resource "aws_lb_target_group" "service_target_group" {
   name        = "${var.project}-${var.service_name}-alb-tg"
   target_type = "ip"
@@ -30,7 +35,7 @@ resource "aws_ecs_task_definition" "service" {
   family                   = "${var.project}-${var.service_name}"
   network_mode             = "awsvpc"
   requires_compatibilities = ["FARGATE"]
-  task_role_arn            = aws_iam_role.ecr_readonly.arn
+  task_role_arn            = aws_iam_role.ecr_task_runtime.arn
   execution_role_arn       = aws_iam_role.ecr_readonly.arn
   # https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task_definition_parameters.html#task_size
   cpu    = var.task_cpu
@@ -51,6 +56,14 @@ resource "aws_ecs_task_definition" "service" {
           containerPort = var.container_port
         }
       ]
+      logConfiguration = {
+        logDriver = "awslogs"
+        options = {
+          "awslogs-group"         = aws_cloudwatch_log_group.service_log_group.name
+          "awslogs-region"        = var.aws_region
+          "awslogs-stream-prefix" = "ecs"
+        }
+      }
   }])
 }
 

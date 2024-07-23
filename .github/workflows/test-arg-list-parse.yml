@@ -1,0 +1,32 @@
+name: Run Test
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  id-token: write
+  contents: read
+  packages: write
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    environment: test
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Parse Args
+        uses: ./github/actions/arg-list-parse
+        with:
+          args:
+            - install
+            - discord
+            - auth-service

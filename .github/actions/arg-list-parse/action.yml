@@ -1,0 +1,27 @@
+name: Arg List Parsing
+description: Test Action for Arg List Parsing
+inputs:
+  args:
+    description: Array of args to parse
+    required: true
+
+runs:
+  using: "composite"
+
+  steps:
+    - name: Initialise
+      id: start
+      shell: bash
+      run: |
+        echo "Start Parsing Args"
+        echo "ACTION_PATH=$(realpath ${{ github.action_path }})" >> $GITHUB_ENV
+
+    - name: Process Args
+      id: process_inputs
+      shell: bash
+      run: |
+        tf_vars=""
+        echo "Args: ${{ inputs.args }}"
+        for arg in ${{ inputs.args }}; do
+          echo "Arg: $arg"
+        done
