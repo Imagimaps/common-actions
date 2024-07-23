@@ -85,7 +85,9 @@ runs:
           while IFS= read -r line; do
             if [ -n "$line" ]; then
               echo "Line is: $line"
-              tf_vars="$tf_vars -var=$(printf '%q' "$line")"
+              escaped_line=$(echo "$line" | sed 's/"/\\"/g')
+              echo "Escaped line is: $escaped_line"
+              tf_vars="$tf_vars -var=$(printf '%q' "$escaped_line")"
             fi
           done <<< "${{ inputs.tf_vars }}"
         fi
