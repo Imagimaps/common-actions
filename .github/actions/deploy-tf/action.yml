@@ -78,6 +78,8 @@ runs:
       id: process_inputs
       shell: bash
       run: |
+        echo "Processing Inputs"
+        echo "${{ inputs.tf_vars }}"
         tf_vars=""
         if [ -n "${{ inputs.tf_vars }}" ]; then
           while IFS= read -r line; do
