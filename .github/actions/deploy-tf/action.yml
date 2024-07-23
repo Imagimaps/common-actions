@@ -88,7 +88,7 @@ runs:
               if [[ $line =~ ^.*\=\[.*\]$ ]]; then
                 # Handle array syntax
                 array_name=$(echo "$line" | cut -d'=' -f1)
-                array_values=$(echo "$line" | cut -d'=' -f2-)
+                array_values=$(echo "$line" | cut -d'=' -f2- | tr -d '[]')
                 # Add quotes around each value in the array
                 quoted_array_values=$(echo "$array_values" | sed 's/\([^,]*\)/"\1"/g')
                 escaped_line="$array_name=[$quoted_array_values]"
