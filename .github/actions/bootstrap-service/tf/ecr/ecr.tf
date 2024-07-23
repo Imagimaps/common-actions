@@ -1,3 +1,7 @@
+// TODO: Add Secrets Manager for Service Secrets
+// Input list of secret names and create them in Secrets Manager
+// Ignore values in the secret
+
 resource "aws_ecr_repository" "service" {
   name                 = "${var.project}/service/${var.service_name}"
   image_tag_mutability = "MUTABLE"
@@ -32,6 +36,9 @@ resource "aws_ecr_repository_policy" "policy" {
           },
           # "StringLike" : {
           #   "aws:PrincipalArn" : "arn:aws:iam::*:role/${var.project}/ecr/*"
+          # }
+          # "ForAnyValue:StringLike": {
+          #   "aws:PrincipalOrgPaths": "o-YOURORGANIZATIONID/*"
           # }
         }
       }

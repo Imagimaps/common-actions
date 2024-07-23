@@ -23,6 +23,9 @@ resource "aws_lb_listener" "ecs_alb_listener_default" {
   }
 }
 
+// TODO: Add listener rule to forward traffic to the target group based on path
+// See https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/lb_listener_rule
+
 resource "aws_ecs_task_definition" "service" {
   family                   = "${var.project}-${var.service_name}"
   network_mode             = "awsvpc"
