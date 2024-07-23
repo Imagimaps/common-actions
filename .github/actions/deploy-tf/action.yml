@@ -83,12 +83,7 @@ runs:
           while IFS= read -r line; do
             if [ -n "$line" ]; then
               echo "Line is: $line"
-              if [[ $line =~ ^\[.*\]$ ]]; then
-                echo "[📋] Array detected"
-                tf_vars="$tf_vars -var=$line"
-              else
-                tf_vars="$tf_vars -var=\"$line\""
-              fi
+              tf_vars="$tf_vars -var=$(printf '%q' "$line")"
             fi
           done <<< "${{ inputs.tf_vars }}"
         fi
