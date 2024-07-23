@@ -39,10 +39,10 @@ runs:
       id: start
       shell: bash
       run: |
-        echo "Bootstrapping Service [${{ inputs.service_name }}]"
+        echo "Bootstrapping Service [${{ inputs.service_name }}] in ${{ inputs.environment }} environment"
         echo "ACTION_PATH=$(realpath ${{ github.action_path }})" >> $GITHUB_ENV
 
-    - name: Bootstrap Service Secrets
+    - name: Bootstrap Service ${{ inputs.environment }} Secrets
       if: ${{ inputs.secret_names != '' }}
       uses: Imagimaps/common-actions/.github/actions/deploy-tf@main
       with:
@@ -58,7 +58,7 @@ runs:
         aws_account_id: ${{ inputs.aws_account_id }}
         aws_region: ${{ inputs.aws_region }}
 
-    - name: Bootstrap Service Infrastructure
+    - name: Bootstrap Service ${{ inputs.environment }} Infrastructure
       uses: Imagimaps/common-actions/.github/actions/deploy-tf@main
       with:
         environment: ${{ inputs.environment }}
