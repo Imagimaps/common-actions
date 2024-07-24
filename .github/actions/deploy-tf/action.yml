@@ -83,11 +83,14 @@ runs:
     - name: Process Secrets Requirements
       shell: bash
       run: |
+        echo "TF_VAR_secret_names=$TF_VAR_secret_names"
         needs_secrets="${{ steps.yq_needs_secrets.outputs.result }}"
         if [ -n "$needs_secrets" ]; then
           echo "Secrets needed for this module: $needs_secrets"
-          echo "TF_VAR_secret_names=$needs_secrets" >> $GITHUB_ENV
+          echo "TF_VAR_secret_names=TF_VAR_secret_names" >> $GITHUB_ENV
         fi
+      env:
+        TF_VAR_secret_names: ${{ steps.yq_needs_secrets.outputs.result }}
 
     - name: Process Plan Inputs
       id: process_inputs
