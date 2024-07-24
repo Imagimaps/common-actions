@@ -5,7 +5,7 @@ inputs:
     description: The name of the service
     required: true
   secret_names:
-    description: Array of secret names to be bootstrapped
+    description: Newline separated string of secret names to be bootstrapped
     required: false
   environment:
     description: The environment to deploy the service to
