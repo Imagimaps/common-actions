@@ -35,9 +35,14 @@ runs:
     - name: Login to Amazon ECR
       id: login-ecr
       uses: aws-actions/amazon-ecr-login@v2
+      with:
+        mask-password: false
 
     - name: Run SQL
       shell: bash
       run: |
         docker pull ${{ inputs.aws_account_id }}.dkr.ecr.${{ inputs.aws_region }}.amazonaws.com/imagimaps/platform/rds-bastion:latest
         psql -h $RDS_HOST -U $RDS_USER -d $RDS_DB -c "$SQL_COMMAND"
+      env:
+        docker_username: ${{ steps.login-ecr.outputs.docker_username_123456789012_dkr_ecr_us_east_1_amazonaws_com }}
+        docker_password: ${{ steps.login-ecr.outputs.docker_password_123456789012_dkr_ecr_us_east_1_amazonaws_com }}

@@ -74,7 +74,7 @@ resource "aws_ecs_task_definition" "service" {
 }
 
 resource "aws_ecs_service" "service" {
-  name            = "imagimaps-bff"
+  name            = var.service_name
   cluster         = data.aws_ecs_cluster.ecs_fargate.id
   task_definition = aws_ecs_task_definition.service.arn
   desired_count   = var.desired_count
