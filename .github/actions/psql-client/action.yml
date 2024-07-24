@@ -1,0 +1,43 @@
+name: Run SQL via PSQL Client
+description: Run SQL commands via PSQL client against the shared RDS instance
+inputs:
+  aws_role_arn:
+    description: The ARN of the role which can create repositories in ECR and push images to them
+    required: true
+  aws_account_id:
+    description: The AWS account ID where the ECR repository is located
+    required: true
+  aws_region:
+    description: The region where the ECR repository is located
+    required: false
+    default: ap-southeast-2
+
+runs:
+  using: "composite"
+
+  steps:
+    - name: Initialise
+      id: start
+      shell: bash
+      run: |
+        action_start_ts=$(date +%s)
+        echo "ts=$action_start_ts" >> $GITHUB_OUTPUT
+
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Login to AWS
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        role-to-assume: ${{ inputs.aws_role_arn }}
+        aws-region: ${{ inputs.aws_region }}
+
+    - name: Login to Amazon ECR
+      id: login-ecr
+      uses: aws-actions/amazon-ecr-login@v2
+
+    - name: Run SQL
+      shell: bash
+      run: |
+        docker pull ${{ inputs.aws_account_id }}.dkr.ecr.${{ inputs.aws_region }}.amazonaws.com/imagimaps/platform/rds-bastion:latest
+        psql -h $RDS_HOST -U $RDS_USER -d $RDS_DB -c "$SQL_COMMAND"
