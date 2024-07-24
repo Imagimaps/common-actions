@@ -88,8 +88,6 @@ runs:
           echo "Secrets needed for this module: $needs_secrets"
           echo "TF_VAR_needs_secrets=$needs_secrets" >> $GITHUB_ENV
         fi
-        echo dbg 1
-        env | grep TF_VAR
 
     - name: Process Plan Inputs
       id: process_inputs
