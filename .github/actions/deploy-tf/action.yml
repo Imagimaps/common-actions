@@ -75,6 +75,7 @@ runs:
         terraform workspace select -or-create ${{ inputs.tf_workspace }}
 
     - name: Get an entry with a variable that might contain dots or spaces
+      continue-on-error: true
       id: yq_needs_secrets
       uses: mikefarah/yq@master
       with:
