@@ -106,8 +106,6 @@ runs:
         echo "tf_vars=$tf_vars" >> $GITHUB_OUTPUT
         echo Processed Inputs
         echo $tf_vars
-        echo dbg 2
-        env | grep TF_VAR
 
     - name: Plan ${{ inputs.tf_workspace }} ${{ inputs.tf_module_name }}
       id: plan
