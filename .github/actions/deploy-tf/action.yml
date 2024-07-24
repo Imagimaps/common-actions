@@ -78,7 +78,7 @@ runs:
       id: yq_needs_secrets
       uses: mikefarah/yq@master
       with:
-        cmd: yq -p yaml -o json '.needs.secrets' imaginarium.yml
+        cmd: yq -p yaml -o json -I 0 '.needs.secrets' imaginarium.yml
 
     - name: Process Secrets Requirements
       shell: bash
