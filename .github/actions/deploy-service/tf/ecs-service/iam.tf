@@ -45,6 +45,16 @@ resource "aws_iam_role_policy" "ecr_readonly_inline_policy" {
         Effect   = "Allow"
         Resource = "*"
       },
+      {
+        Action = [
+          "logs:CreateLogStream",
+          "logs:PutLogEvents"
+        ]
+        Effect = "Allow"
+        Resource = [
+          aws_cloudwatch_log_group.service_log_group.arn
+        ]
+      }
     ]
   })
 }
