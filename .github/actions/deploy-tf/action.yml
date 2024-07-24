@@ -83,10 +83,11 @@ runs:
     - name: Process Secrets Requirements
       shell: bash
       run: |
+        # This is a hack. TODO: Make proper imaginarium.yml parser
         echo "TF_VAR_secret_names=$TF_VAR_secret_names"
         needs_secrets="${{ steps.yq_needs_secrets.outputs.result }}"
-        if [ -n "$needs_secrets" ]; then
-          echo "Secrets needed for this module: $needs_secrets"
+        if [ -n "$TF_VAR_secret_names" ]; then
+          echo "Secrets needed for this module: $TF_VAR_secret_names"
           echo "TF_VAR_secret_names=$TF_VAR_secret_names" >> $GITHUB_ENV
         fi
       env:
