@@ -64,6 +64,12 @@ resource "aws_ecs_task_definition" "service" {
           "awslogs-stream-prefix" = "ecs"
         }
       }
+      environment = [
+        {
+          name  = "HOST_TYPE"
+          value = "AWS"
+        }
+      ]
   }])
 }
 
