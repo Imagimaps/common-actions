@@ -30,17 +30,17 @@ resource "aws_ecr_repository_policy" "policy" {
           "ecr:DescribeImages",
           "ecr:DescribeRepositories",
         ],
-        "Condition" : {
-          "StringEquals" : {
-            "aws:PrincipalOrgID" : "ou-xkxl-ltgnvnxi"
-          },
-          # "StringLike" : {
-          #   "aws:PrincipalArn" : "arn:aws:iam::*:role/${var.project}/ecr/*"
-          # }
-          # "ForAnyValue:StringLike": {
-          #   "aws:PrincipalOrgPaths": "o-YOURORGANIZATIONID/*"
-          # }
-        }
+        # "Condition" : {
+        #   "StringEquals" : {
+        #     "aws:PrincipalOrgID" : "ou-xkxl-ltgnvnxi"
+        #   },
+        #   # "StringLike" : {
+        #   #   "aws:PrincipalArn" : "arn:aws:iam::*:role/${var.project}/ecr/*"
+        #   # }
+        #   # "ForAnyValue:StringLike": {
+        #   #   "aws:PrincipalOrgPaths": "o-YOURORGANIZATIONID/*"
+        #   # }
+        # }
       }
     ]
   })
