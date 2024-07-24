@@ -74,6 +74,23 @@ runs:
           -backend-config="dynamodb_table=tf-state-lock-${{ inputs.aws_region }}-${{ inputs.aws_account_id }}"
         terraform workspace select -or-create ${{ inputs.tf_workspace }}
 
+    - name: Get an entry with a variable that might contain dots or spaces
+      id: yq_needs_secrets
+      uses: mikefarah/yq@master
+      with:
+        cmd: yq -p yaml -o json '.needs.secrets' imaginarium.yml
+
+    - name: Process Secrets Requirements
+      shell: bash
+      run: |
+        needs_secrets=$(echo "${{ steps.yq_needs_secrets.outputs.result }}")
+        if [ -n "$needs_secrets" ]; then
+          echo "Secrets needed for this module: $needs_secrets"
+          echo "TF_VAR_needs_secrets=$needs_secrets" >> $GITHUB_ENV
+        fi
+        echo dbg 1
+        env | grep TF_VAR
+
     - name: Process Plan Inputs
       id: process_inputs
       shell: bash
@@ -81,46 +98,18 @@ runs:
         echo "Processing Inputs"
         echo "${{ inputs.tf_vars }}"
         tf_vars=""
-        current_key=""
-        current_values=()
-
-        while IFS= read -r line; do
-          if [[ "$line" =~ ^[^=]+=[^=]*$ ]]; then
-            # If we encounter a new key=value pair, process the previous one
-            if [ -n "$current_key" ]; then
-              if [ ${#current_values[@]} -gt 1 ]; then
-                # Multiple values, format as array
-                formatted_values=$(printf ',"%s"' "${current_values[@]}")
-                formatted_values="[${formatted_values:1}]"
-              else
-                # Single value
-                formatted_values="${current_values[0]}"
-              fi
-              echo "TF_VAR_$current_key=$formatted_values" >> $GITHUB_ENV
+        if [ -n "${{ inputs.tf_vars }}" ]; then
+          while IFS= read -r line; do
+            if [ -n "$line" ]; then
+              tf_vars="$tf_vars -var=\"$line\""
             fi
-            # Start processing new key=value pair
-            current_key=$(echo "$line" | cut -d'=' -f1)
-            current_values=($(echo "$line" | cut -d'=' -f2-))
-          else
-            # Continuation of the previous key's values
-            current_values+=("$line")
-          fi
-        done <<< "${{ inputs.tf_vars }}"
-
-        # Process the last key=value pair
-        if [ -n "$current_key" ]; then
-          if [ ${#current_values[@]} -gt 1 ]; then
-            # Multiple values, format as array
-            formatted_values=$(printf ',"%s"' "${current_values[@]}")
-            formatted_values="[${formatted_values:1}]"
-          else
-            # Single value
-            formatted_values="${current_values[0]}"
-          fi
-          echo "TF_VAR_$current_key=$formatted_values" >> $GITHUB_ENV
+          done <<< "${{ inputs.tf_vars }}"
         fi
-
-        echo "Processed Inputs"
+        echo "tf_vars=$tf_vars" >> $GITHUB_OUTPUT
+        echo Processed Inputs
+        echo $tf_vars
+        echo dbg 2
+        env | grep TF_VAR
 
     - name: Plan ${{ inputs.tf_workspace }} ${{ inputs.tf_module_name }}
       id: plan

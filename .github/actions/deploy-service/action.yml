@@ -4,9 +4,6 @@ inputs:
   service_name:
     description: The name of the service
     required: true
-  secret_names:
-    description: Newline separated string of secret names to be bootstrapped
-    required: false
   environment:
     description: The environment to deploy the service to
     required: true
@@ -43,7 +40,6 @@ runs:
         echo "ACTION_PATH=$(realpath ${{ github.action_path }})" >> $GITHUB_ENV
 
     - name: Bootstrap Service ${{ inputs.environment }} Secrets
-      if: ${{ inputs.secret_names != '' }}
       uses: Imagimaps/common-actions/.github/actions/deploy-tf@main
       with:
         environment: ${{ inputs.environment }}
@@ -53,7 +49,6 @@ runs:
         tf_vars: |
           project=imagimaps
           service_name=${{ inputs.service_name }}
-          secret_names=${{ inputs.secret_names }}
         aws_role_arn: ${{ inputs.aws_role_arn }}
         aws_account_id: ${{ inputs.aws_account_id }}
         aws_region: ${{ inputs.aws_region }}
