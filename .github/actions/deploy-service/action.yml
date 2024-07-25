@@ -28,6 +28,10 @@ outputs:
     description: The duration of the action in seconds
     value: ${{ steps.end.outputs.runtime }}
 
+defaults:
+  run:
+    shell: bash
+
 runs:
   using: "composite"
 
@@ -53,12 +57,77 @@ runs:
         aws_account_id: ${{ inputs.aws_account_id }}
         aws_region: ${{ inputs.aws_region }}
 
+    - name: Startup PSQL Bastion
+      id: psql-bastion
+      run: |
+        echo "Setting number of psql bastions to 1"
+        aws ecs update-service \
+          --cluster "$CLUSTER_NAME" \
+          --service "$SERVICE_NAME" \
+          --desired-count 1
+
+        # Get start time in seconds since the epoch
+        START_TIME=$(date +%s)
+
+        while true; do
+          # Get current time in seconds since the epoch
+          CURRENT_TIME=$(date +%s)
+
+          # Calculate elapsed time
+          ELAPSED_TIME=$(($CURRENT_TIME - $START_TIME))
+
+          # Check if 2 minutes (120 seconds) have elapsed
+          if [[ "$ELAPSED_TIME" -ge 120 ]]; then
+            echo "Timeout reached: 2 minutes have elapsed."
+            exit 1
+          fi
+
+          RUNNING_TASKS=$(aws ecs describe-services --cluster "$CLUSTER_NAME" --services "$SERVICE_NAME" --query "services[0].runningCount" --output text)
+          if [[ "$RUNNING_TASKS" -eq 1 ]]; then
+            echo "The number of running tasks has reached 1."
+            break
+          else
+            echo "Waiting for the number of running tasks to reach 1. Current running tasks: $RUNNING_TASKS"
+            sleep 10 # Wait for 10 seconds before checking again
+          fi
+        done
+
+        TASK_ID=$(aws ecs list-tasks --cluster "$CLUSTER_NAME" --service-name "$SERVICE_NAME" --desired-status RUNNING --query "taskArns[0]" --output text | cut -d'/' -f3)
+        echo "Bastion Task ID: $TASK_ID"
+        echo "task_id=$TASK_ID" >> $GITHUB_OUTPUT
+
+        CONTAINER_NAME=$(aws ecs describe-tasks --cluster "$CLUSTER_NAME" --tasks "$TASK_ID" --query "tasks[0].containers[0].name" --output text)
+        echo "Container Name: $CONTAINER_NAME"
+        echo "container_name=$CONTAINER_NAME" >> $GITHUB_OUTPUT
+      env:
+        CLUSTER_NAME: imagimaps-${{ inputs.environment }}-fargate
+        SERVICE_NAME: psql-bastion
+
     - name: Setup Database
-      uses: Imagimaps/common-actions/.github/actions/psql-client@main
-      with:
-        aws_role_arn: ${{ inputs.aws_role_arn }}
-        aws_account_id: ${{ inputs.artifacts_aws_account_id }}
-        aws_region: ${{ inputs.aws_region }}
+      if: false
+      shell: bash
+      run: |
+        aws ecs execute-command \
+          --cluster "$CLUSTER_NAME" \
+          --task "$TASK_ID" \
+          --container "$CONTAINER_NAME" \
+          --command "psql --version" \
+          --interactive
+      env:
+        CLUSTER_NAME: imagimaps-${{ inputs.environment }}-fargate
+        CONTAINER_NAME: ${{ steps.psql-bastion.outputs.container_name }}
+        TASK_ID: ${{ steps.psql-bastion.outputs.task_id }}
+
+    - name: Destroy PSQL Bastion
+      run: |
+        echo "Setting number of psql bastions to 0"
+        aws ecs update-service \
+          --cluster "CLUSTER_NAME" \
+          --service "$SERVICE_NAME" \
+          --desired-count 0
+      env:
+        CLUSTER_NAME: imagimaps-${{ inputs.environment }}-fargate
+        SERVICE_NAME: psql-bastion
 
     - name: Create Fargate Service
       uses: Imagimaps/common-actions/.github/actions/deploy-tf@main
