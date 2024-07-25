@@ -105,11 +105,13 @@ runs:
     - name: Setup Database
       shell: bash
       run: |
+        echo "Setting up database for $SERVICE_DB_NAME"
         rds_arn=$(aws resourcegroupstaggingapi get-resources \
           --tag-filters Key=Name,Values=imagimaps-shared \
           --resource-type-filters rds:db \
           --query 'ResourceTagMappingList[].ResourceARN' \
           --output text)
+        echo "RDS ARN: $rds_arn"
         if [ -z "$rds_arn" ]; then
           echo "No RDS bd found for imagimaps-shared"
           exit 1
@@ -118,6 +120,7 @@ runs:
           --db-instance-identifier $(basename $rds_arn) \
           --query 'DBInstances[0].[MasterUserSecret,Endpoint.Address,Endpoint.Port,DBInstanceStatus,MasterUserSecret]' \
           --output json)
+        echo "RDS Info: $rds_info"
         rds_db_name=$(echo $rds_info | jq -r '.[0]')
         rds_host=$(echo $rds_info | jq -r '.[1]')
         rds_port=$(echo $rds_info | jq -r '.[2]')
