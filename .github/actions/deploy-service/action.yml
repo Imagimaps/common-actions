@@ -105,16 +105,48 @@ runs:
     - name: Setup Database
       shell: bash
       run: |
+        rds_arn=$(aws resourcegroupstaggingapi get-resources \
+          --tag-filters Key=Name,Values=imagimaps-shared \
+          --resource-type-filters rds:db \
+          --query 'ResourceTagMappingList[].ResourceARN' \
+          --output text)
+        if [ -z "$rds_arn" ]; then
+          echo "No RDS bd found for imagimaps-shared"
+          exit 1
+        fi
+        rds_info=$(aws rds describe-db-instances \
+          --db-instance-identifier $(basename $rds_arn) \
+          --query 'DBInstances[0].[MasterUserSecret,Endpoint.Address,Endpoint.Port,DBInstanceStatus,MasterUserSecret]' \
+          --output json)
+        rds_db_name=$(echo $rds_info | jq -r '.[0]')
+        rds_host=$(echo $rds_info | jq -r '.[1]')
+        rds_port=$(echo $rds_info | jq -r '.[2]')
+        rds_status=$(echo $rds_info | jq -r '.[3]')
+        if [ "$rds_status" != "available" ]; then
+          echo "RDS db is not available"
+          exit 1
+        fi
+
+        rds_master_user_secret_arn=$(echo $rds_info | jq -r '.[4]')
+        rds_master_user_secret=$(aws secretsmanager get-secret-value \
+          --secret-id $rds_master_user_secret_arn \
+          --query SecretString \
+          --output text)
+
+        connection_opts="-h $rds_host -p $rds_port -U $rds_db_name -d $rds_db_name"
+        export PGPASSWORD=$rds_master_user_secret
+        echo "psql $connection_opts -f ./sql/create-db.sql -v db_name=$SERVICE_DB_NAME"
         aws ecs execute-command \
           --cluster "$CLUSTER_NAME" \
           --task "$TASK_ID" \
           --container "$CONTAINER_NAME" \
-          --command "psql --version" \
+          --command "psql $connection_opts -f ./sql/create-db.sql -v db_name=$SERVICE_DB_NAME" \
           --interactive
       env:
         CLUSTER_NAME: imagimaps-${{ inputs.environment }}-fargate
         CONTAINER_NAME: ${{ steps.psql-bastion.outputs.container_name }}
         TASK_ID: ${{ steps.psql-bastion.outputs.task_id }}
+        SERVICE_DB_NAME: ${{ inputs.service_name }}
 
     - name: Destroy PSQL Bastion
       shell: bash
