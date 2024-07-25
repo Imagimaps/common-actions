@@ -86,7 +86,7 @@ runs:
             echo "The number of running tasks has reached 1."
             break
           else
-            echo "Waiting for the number of running tasks to reach 1. Current running tasks: $RUNNING_TASKS"
+            echo "Waiting for the number of running tasks to reach 1. Waiting 10s. Current running tasks: $RUNNING_TASKS"
             sleep 10 # Wait for 10 seconds before checking again
           fi
         done
