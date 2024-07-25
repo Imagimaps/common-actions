@@ -104,7 +104,6 @@ runs:
         SERVICE_NAME: psql-bastion
 
     - name: Setup Database
-      if: false
       shell: bash
       run: |
         aws ecs execute-command \
