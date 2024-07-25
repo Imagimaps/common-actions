@@ -125,12 +125,13 @@ runs:
         rds_host=$(echo $rds_info | jq -r '.[1]')
         rds_port=$(echo $rds_info | jq -r '.[2]')
         rds_status=$(echo $rds_info | jq -r '.[3]')
+        echo "$rds_db_name $rds_host $rds_port $rds_status"
         if [ "$rds_status" != "available" ]; then
           echo "RDS db is not available"
           exit 1
         fi
 
-        rds_master_user_secret_arn=$(echo $rds_info | jq -r '.[4]')
+        rds_master_user_secret_arn=$(echo $rds_info | jq -r '.[4].SecretArn')
         rds_master_user_secret=$(aws secretsmanager get-secret-value \
           --secret-id $rds_master_user_secret_arn \
           --query SecretString \
