@@ -61,7 +61,9 @@ runs:
         aws ecs update-service \
           --cluster "$CLUSTER_NAME" \
           --service "$SERVICE_NAME" \
-          --desired-count 1
+          --desired-count 1 \
+          --no-cli-pager \
+          --query "service.deployments"
 
         # Get start time in seconds since the epoch
         START_TIME=$(date +%s)
@@ -121,7 +123,9 @@ runs:
         aws ecs update-service \
           --cluster "$CLUSTER_NAME" \
           --service "$SERVICE_NAME" \
-          --desired-count 0
+          --desired-count 0 \
+          --no-cli-pager \
+          --query "service.deployments"
         echo "All DB setup tasks have been completed"
       env:
         CLUSTER_NAME: imagimaps-${{ inputs.environment }}-fargate
