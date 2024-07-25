@@ -141,11 +141,13 @@ runs:
         pg_pass=$(echo $rds_master_user_secret | jq -r '.password')
         connection_opts="-h $rds_host -p $rds_port -U $pg_user -d postgres"
         echo "sh -c 'export PGPASSWORD=\"$pg_pass\"; psql $connection_opts -f ./sql/create-db.sql -v db_name=$SERVICE_DB_NAME'"
+        sql_file=$(cat ./sql/create-db.sql)
         aws ecs execute-command \
           --cluster "$CLUSTER_NAME" \
           --task "$TASK_ID" \
           --container "$CONTAINER_NAME" \
-          --command "sh -c 'export PGPASSWORD=\"$pg_pass\"; psql $connection_opts -f ./sql/create-db.sql -v db_name=$SERVICE_DB_NAME'" \
+          --command "sh -c 'echo \"$sql_file\" > /tmp/create-db.sql'" \
+          --command "sh -c 'export PGPASSWORD=\"$pg_pass\"; psql $connection_opts -f /tmp/create-db.sql -v db_name=$SERVICE_DB_NAME'" \
           --interactive
       env:
         CLUSTER_NAME: imagimaps-${{ inputs.environment }}-fargate
