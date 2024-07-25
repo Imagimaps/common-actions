@@ -109,12 +109,6 @@ runs:
           --container "$CONTAINER_NAME" \
           --command "psql --version" \
           --interactive
-        exit_code=$?
-        if [[ $exit_code -ne 0 ]]; then
-          echo "Error: Failed to setup database"
-          exit 1
-        fi
-        echo "Database setup successful"
       env:
         CLUSTER_NAME: imagimaps-${{ inputs.environment }}-fargate
         CONTAINER_NAME: ${{ steps.psql-bastion.outputs.container_name }}
@@ -125,7 +119,7 @@ runs:
       run: |
         echo "Setting number of psql bastions to 0"
         aws ecs update-service \
-          --cluster "CLUSTER_NAME" \
+          --cluster "$CLUSTER_NAME" \
           --service "$SERVICE_NAME" \
           --desired-count 0
         echo "All DB setup tasks have been completed"
