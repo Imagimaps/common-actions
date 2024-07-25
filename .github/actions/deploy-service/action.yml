@@ -143,7 +143,7 @@ runs:
         pg_pass=$(echo $rds_master_user_secret | jq -r '.password')
         connection_opts="-h $rds_host -p $rds_port -U $pg_user -d postgres"
         echo "sh -c 'export PGPASSWORD=\"$pg_pass\"; psql $connection_opts -f ./sql/create-db.sql -v db_name=$SERVICE_DB_NAME'"
-        sql_file=$(cat ./sql/create-db.sql)
+        sql_file=$(cat $ACTION_PATH/sql/create-db.sql)
         aws ecs execute-command \
           --cluster "$CLUSTER_NAME" \
           --task "$TASK_ID" \
@@ -156,6 +156,7 @@ runs:
         CONTAINER_NAME: ${{ steps.psql-bastion.outputs.container_name }}
         TASK_ID: ${{ steps.psql-bastion.outputs.task_id }}
         SERVICE_DB_NAME: ${{ inputs.service_name }}
+        ACTION_PATH: ${{ env.ACTION_PATH }}
 
     - name: Destroy PSQL Bastion
       shell: bash
