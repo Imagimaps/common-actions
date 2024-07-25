@@ -118,7 +118,7 @@ runs:
         fi
         rds_info=$(aws rds describe-db-instances \
           --db-instance-identifier $(basename $rds_arn) \
-          --query 'DBInstances[0].[MasterUserSecret,Endpoint.Address,Endpoint.Port,DBInstanceStatus,MasterUserSecret]' \
+          --query 'DBInstances[0].[DBInstanceIdentifier,Endpoint.Address,Endpoint.Port,DBInstanceStatus,MasterUserSecret]' \
           --output json)
         echo "RDS Info: $rds_info"
         rds_db_name=$(echo $rds_info | jq -r '.[0]')
