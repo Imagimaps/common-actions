@@ -1,16 +1,27 @@
 name: Run SQL via PSQL Client
 description: Run SQL commands via PSQL client against the shared RDS instance
 inputs:
+  project:
+    description: The name of the project
+    required: false
+    default: imagimaps
+  service:
+    description: The name of the service in which db actions are to be performed
+    required: true
+  environment:
+    description: The environment to perform db operations in
+    required: true
   aws_role_arn:
     description: The ARN of the role which can create repositories in ECR and push images to them
-    required: true
-  aws_account_id:
-    description: The AWS account ID where the ECR repository is located
     required: true
   aws_region:
     description: The region where the ECR repository is located
     required: false
     default: ap-southeast-2
+  bastion_timeout:
+    description: The number of seconds to wait for the bastion to start. Default is 120 seconds (2 minutes)
+    required: false
+    default: 120
 
 runs:
   using: "composite"
@@ -39,8 +50,8 @@ runs:
       run: |
         echo "Setting number of psql bastions to 1"
         aws ecs update-service \
-          --cluster "$CLUSTER_NAME" \
-          --service "$SERVICE_NAME" \
+          --cluster "$ECS_CLUSTER_NAME" \
+          --service "$ECS_SERVICE_NAME" \
           --desired-count 1 \
           --no-cli-pager \
           --query "service.deployments"
@@ -49,38 +60,47 @@ runs:
         START_TIME=$(date +%s)
 
         while true; do
-          # Get current time in seconds since the epoch
           CURRENT_TIME=$(date +%s)
-
-          # Calculate elapsed time
           ELAPSED_TIME=$(($CURRENT_TIME - $START_TIME))
 
-          # Check if 2 minutes (120 seconds) have elapsed
-          if [[ "$ELAPSED_TIME" -ge 120 ]]; then
+          if [[ "$ELAPSED_TIME" -ge ${{ inputs.bastion_timeout }} ]]; then
             echo "Timeout reached: 2 minutes have elapsed."
             exit 1
           fi
 
-          RUNNING_TASKS=$(aws ecs describe-services --cluster "$CLUSTER_NAME" --services "$SERVICE_NAME" --query "services[0].runningCount" --output text)
+          RUNNING_TASKS=$(aws ecs describe-services \
+            --cluster "$ECS_CLUSTER_NAME" \
+            --services "$ECS_SERVICE_NAME" \
+            --query "services[0].runningCount" \
+            --output text)
           if [[ "$RUNNING_TASKS" -eq 1 ]]; then
             echo "The number of running tasks has reached 1."
             break
           else
             echo "Waiting for the number of running tasks to reach 1. Waiting 10s. Current running tasks: $RUNNING_TASKS"
-            sleep 10 # Wait for 10 seconds before checking again
+            sleep 10 
           fi
         done
 
-        TASK_ID=$(aws ecs list-tasks --cluster "$CLUSTER_NAME" --service-name "$SERVICE_NAME" --desired-status RUNNING --query "taskArns[0]" --output text | cut -d'/' -f3)
+        TASK_ID=$(aws ecs list-tasks \
+          --cluster "$ECS_CLUSTER_NAME" \
+          --service-name "$ECS_SERVICE_NAME" \
+          --desired-status RUNNING \
+          --query "taskArns[0]" \
+          --output text | cut -d'/' -f3)
         echo "Bastion Task ID: $TASK_ID"
         echo "task_id=$TASK_ID" >> $GITHUB_OUTPUT
 
-        CONTAINER_NAME=$(aws ecs describe-tasks --cluster "$CLUSTER_NAME" --tasks "$TASK_ID" --query "tasks[0].containers[0].name" --output text)
+        CONTAINER_NAME=$(aws ecs describe-tasks \
+          --cluster "$ECS_CLUSTER_NAME" \
+          --tasks "$TASK_ID" \
+          --query "tasks[0].containers[0].name" \
+          --output text)
         echo "Container Name: $CONTAINER_NAME"
         echo "container_name=$CONTAINER_NAME" >> $GITHUB_OUTPUT
       env:
-        CLUSTER_NAME: imagimaps-${{ inputs.environment }}-fargate
-        SERVICE_NAME: psql-bastion
+        ECS_CLUSTER_NAME: ${{ inputs.project }}-${{ inputs.environment }}-fargate
+        ECS_SERVICE_NAME: psql-bastion
 
     - name: Setup Database
       shell: bash
@@ -119,20 +139,20 @@ runs:
 
         pg_user=$(echo $rds_master_user_secret | jq -r '.username')
         pg_pass=$(echo $rds_master_user_secret | jq -r '.password')
-        connection_opts="-h $rds_host -p $rds_port -U $pg_user -d postgres"
-        echo "sh -c 'export PGPASSWORD=\"***\"; psql $connection_opts -f /sql/create-db.sql -v db_name=$SERVICE_DB_NAME'"
-        sql_file=$(cat $ACTION_PATH/sql/create-db.sql)
+        PG_VARS="PGPASSWORD=$pg_pass PGUSER=$pg_user PGHOST=$rds_host PGPORT=$rds_port PGDATABASE=postgres"
+        echo "PGPASSWORD=*** PGUSER=$pg_user PGHOST=$rds_host PGPORT=$rds_port PGDATABASE=postgres"
         aws ecs execute-command \
           --cluster "$CLUSTER_NAME" \
           --task "$TASK_ID" \
           --container "$CONTAINER_NAME" \
-          --command "sh -c 'export PGPASSWORD=\"$pg_pass\" && psql $connection_opts -f /sql/create-db.sql -v db_name=$SERVICE_DB_NAME'" \
+          --command "sh -c '$PG_VARS /scripts/bootstrap-service-db.sh $SERVICE_DB_NAME $ENVIRONMENT'" \
           --interactive
       env:
-        CLUSTER_NAME: imagimaps-${{ inputs.environment }}-fargate
+        ENVIRONMENT: ${{ inputs.environment }}
+        CLUSTER_NAME: ${{ inputs.project }}-${{ inputs.environment }}-fargate
         CONTAINER_NAME: ${{ steps.psql-bastion.outputs.container_name }}
         TASK_ID: ${{ steps.psql-bastion.outputs.task_id }}
-        SERVICE_DB_NAME: ${{ inputs.service_name }}
+        SERVICE_DB_NAME: ${{ inputs.service }}
         ACTION_PATH: ${{ env.ACTION_PATH }}
 
     - name: Destroy PSQL Bastion

@@ -1,3 +1,8 @@
+locals {
+  aws_region = data.aws_region.current.name
+  aws_account_id = data.aws_caller_identity.current.account_id
+}
+
 resource "aws_iam_role" "ecr_readonly" {
   name = "${var.service_name}-ecr-read-only"
   path = "/${var.project}/ecr/"
@@ -94,8 +99,7 @@ resource "aws_iam_role_policy" "ecr_task_runtime_inline_policy" {
         ]
         Effect = "Allow"
         Resource = [
-          "arn:aws:secretsmanager:ap-southeast-2:590183675784:secret:${var.project}/${var.service_name}/*",
-          "arn:aws:secretsmanager:ap-southeast-2:590183675784:secret:discord-config-5XGytV",
+          "arn:aws:secretsmanager:${local.aws_region}:${local.aws_account_id}:secret:${var.project}/${var.service_name}/*",
         ]
       },
       {
@@ -105,6 +109,16 @@ resource "aws_iam_role_policy" "ecr_task_runtime_inline_policy" {
         Effect   = "Allow"
         Resource = "*"
       },
+      {
+        Action = [
+          "rds-db:connect"
+        ]
+        Effect = "Allow"
+        Resource = [
+          "arn:aws:rds-db:${local.aws_region}:${local.aws_account_id}:dbuser:${data.aws_db_instance.shared.resource_id}/${var.service_name}",
+          "arn:aws:rds-db:${local.aws_region}:${local.aws_account_id}:dbuser:${data.aws_db_instance.shared.resource_id}/${var.service_name}-tmp",
+        ]
+      }
     ]
   })
 }

@@ -30,3 +30,7 @@ data "aws_subnets" "private_subnets" {
 data "aws_security_group" "ecs_fargate_sg" {
   name = "ecs-alb-sg"
 }
+
+data "aws_db_instance" "shared" {
+  db_instance_identifier = "imagimaps-shared"
+}
