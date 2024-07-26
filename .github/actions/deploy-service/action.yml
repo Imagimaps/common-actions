@@ -40,6 +40,7 @@ runs:
         echo "ACTION_PATH=$(realpath ${{ github.action_path }})" >> $GITHUB_ENV
 
     - name: Bootstrap Service ${{ inputs.environment }} Secrets
+      if: false
       uses: Imagimaps/common-actions/.github/actions/deploy-tf@main
       with:
         environment: ${{ inputs.environment }}
@@ -146,7 +147,7 @@ runs:
           --cluster "$CLUSTER_NAME" \
           --task "$TASK_ID" \
           --container "$CONTAINER_NAME" \
-          --command "sh -c 'export PGPASSWORD=\"$pg_pass\" && psql $connection_opts -f /sql/create-db.sql -v db_name=$SERVICE_DB_NAME'" \
+          --command "sh -c 'ls -la / && ls -la /sql && export PGPASSWORD=\"$pg_pass\" && psql $connection_opts -f /sql/create-db.sql -v db_name=$SERVICE_DB_NAME'" \
           --interactive
       env:
         CLUSTER_NAME: imagimaps-${{ inputs.environment }}-fargate
@@ -156,6 +157,7 @@ runs:
         ACTION_PATH: ${{ env.ACTION_PATH }}
 
     - name: Destroy PSQL Bastion
+      if: false
       shell: bash
       run: |
         echo "Setting number of psql bastions to 0"
