@@ -154,8 +154,9 @@ runs:
           --cluster "$CLUSTER_NAME" \
           --task "$TASK_ID" \
           --container "$CONTAINER_NAME" \
-          --command "sh -c 'export PGPASSWORD=\"$pg_pass\" && createdb $SERVICE_DB_NAME'" \
+          --command "sh -c 'export PGPASSWORD=\"$pg_pass\"; psql $connection_opts -c \"SELECT datname FROM pg_database;\"'" \
           --interactive
+        # --command "sh -c 'export PGPASSWORD=\"$pg_pass\"; createdb $SERVICE_DB_NAME'" \
       env:
         CLUSTER_NAME: imagimaps-${{ inputs.environment }}-fargate
         CONTAINER_NAME: ${{ steps.psql-bastion.outputs.container_name }}
