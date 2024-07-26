@@ -139,7 +139,7 @@ runs:
 
         pg_user=$(echo $rds_master_user_secret | jq -r '.username')
         pg_pass=$(echo $rds_master_user_secret | jq -r '.password')
-        PG_VARS="PGPASSWORD=$pg_pass PGUSER=$pg_user PGHOST=$rds_host PGPORT=$rds_port PGDATABASE=postgres"
+        PG_VARS="PGPASSWORD="$pg_pass" PGUSER="$pg_user" PGHOST="$rds_host" PGPORT="$rds_port" PGDATABASE="postgres""
         echo "PGPASSWORD=*** PGUSER=$pg_user PGHOST=$rds_host PGPORT=$rds_port PGDATABASE=postgres"
         aws ecs execute-command \
           --cluster "$CLUSTER_NAME" \
