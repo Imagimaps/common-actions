@@ -154,7 +154,7 @@ runs:
           --cluster "$CLUSTER_NAME" \
           --task "$TASK_ID" \
           --container "$CONTAINER_NAME" \
-          --command "sh -c 'ls -la /sql && export PGPASSWORD=\"$pg_pass\" && psql $connection_opts -f /sql/create-db.sql -v db_name=$SERVICE_DB_NAME'" \
+          --command "sh -c 'export PGPASSWORD=\"$pg_pass\" && createdb $SERVICE_DB_NAME" \
           --interactive
       env:
         CLUSTER_NAME: imagimaps-${{ inputs.environment }}-fargate

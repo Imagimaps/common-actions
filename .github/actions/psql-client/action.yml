@@ -27,22 +27,126 @@ runs:
       uses: actions/checkout@v4
 
     - name: Login to AWS
+      id: login-aws
       uses: aws-actions/configure-aws-credentials@v4
       with:
         role-to-assume: ${{ inputs.aws_role_arn }}
         aws-region: ${{ inputs.aws_region }}
 
-    - name: Login to Amazon ECR
-      id: login-ecr
-      uses: aws-actions/amazon-ecr-login@v2
-      with:
-        mask-password: false
+    - name: Startup PSQL Bastion
+      shell: bash
+      id: psql-bastion
+      run: |
+        echo "Setting number of psql bastions to 1"
+        aws ecs update-service \
+          --cluster "$CLUSTER_NAME" \
+          --service "$SERVICE_NAME" \
+          --desired-count 1 \
+          --no-cli-pager \
+          --query "service.deployments"
 
-    - name: Run SQL
+        # Get start time in seconds since the epoch
+        START_TIME=$(date +%s)
+
+        while true; do
+          # Get current time in seconds since the epoch
+          CURRENT_TIME=$(date +%s)
+
+          # Calculate elapsed time
+          ELAPSED_TIME=$(($CURRENT_TIME - $START_TIME))
+
+          # Check if 2 minutes (120 seconds) have elapsed
+          if [[ "$ELAPSED_TIME" -ge 120 ]]; then
+            echo "Timeout reached: 2 minutes have elapsed."
+            exit 1
+          fi
+
+          RUNNING_TASKS=$(aws ecs describe-services --cluster "$CLUSTER_NAME" --services "$SERVICE_NAME" --query "services[0].runningCount" --output text)
+          if [[ "$RUNNING_TASKS" -eq 1 ]]; then
+            echo "The number of running tasks has reached 1."
+            break
+          else
+            echo "Waiting for the number of running tasks to reach 1. Waiting 10s. Current running tasks: $RUNNING_TASKS"
+            sleep 10 # Wait for 10 seconds before checking again
+          fi
+        done
+
+        TASK_ID=$(aws ecs list-tasks --cluster "$CLUSTER_NAME" --service-name "$SERVICE_NAME" --desired-status RUNNING --query "taskArns[0]" --output text | cut -d'/' -f3)
+        echo "Bastion Task ID: $TASK_ID"
+        echo "task_id=$TASK_ID" >> $GITHUB_OUTPUT
+
+        CONTAINER_NAME=$(aws ecs describe-tasks --cluster "$CLUSTER_NAME" --tasks "$TASK_ID" --query "tasks[0].containers[0].name" --output text)
+        echo "Container Name: $CONTAINER_NAME"
+        echo "container_name=$CONTAINER_NAME" >> $GITHUB_OUTPUT
+      env:
+        CLUSTER_NAME: imagimaps-${{ inputs.environment }}-fargate
+        SERVICE_NAME: psql-bastion
+
+    - name: Setup Database
       shell: bash
       run: |
-        docker pull ${{ inputs.aws_account_id }}.dkr.ecr.${{ inputs.aws_region }}.amazonaws.com/imagimaps/platform/rds-bastion:latest
-        psql -h $RDS_HOST -U $RDS_USER -d $RDS_DB -c "$SQL_COMMAND"
+        echo "Setting up database for $SERVICE_DB_NAME"
+        rds_arn=$(aws resourcegroupstaggingapi get-resources \
+          --tag-filters Key=Name,Values=imagimaps-shared \
+          --resource-type-filters rds:db \
+          --query 'ResourceTagMappingList[].ResourceARN' \
+          --output text)
+        echo "RDS ARN: $rds_arn"
+        if [ -z "$rds_arn" ]; then
+          echo "No RDS bd found for imagimaps-shared"
+          exit 1
+        fi
+        rds_info=$(aws rds describe-db-instances \
+          --db-instance-identifier $(basename $rds_arn) \
+          --query 'DBInstances[0].[DBInstanceIdentifier,Endpoint.Address,Endpoint.Port,DBInstanceStatus,MasterUserSecret]' \
+          --output json)
+        echo "RDS Info: $rds_info"
+        rds_db_name=$(echo $rds_info | jq -r '.[0]')
+        rds_host=$(echo $rds_info | jq -r '.[1]')
+        rds_port=$(echo $rds_info | jq -r '.[2]')
+        rds_status=$(echo $rds_info | jq -r '.[3]')
+        echo "$rds_db_name $rds_host $rds_port $rds_status"
+        if [ "$rds_status" != "available" ]; then
+          echo "RDS db is not available"
+          exit 1
+        fi
+
+        rds_master_user_secret_arn=$(echo $rds_info | jq -r '.[4].SecretArn')
+        rds_master_user_secret=$(aws secretsmanager get-secret-value \
+          --secret-id $rds_master_user_secret_arn \
+          --query SecretString \
+          --output text)
+
+        pg_user=$(echo $rds_master_user_secret | jq -r '.username')
+        pg_pass=$(echo $rds_master_user_secret | jq -r '.password')
+        connection_opts="-h $rds_host -p $rds_port -U $pg_user -d postgres"
+        echo "sh -c 'export PGPASSWORD=\"***\"; psql $connection_opts -f /sql/create-db.sql -v db_name=$SERVICE_DB_NAME'"
+        sql_file=$(cat $ACTION_PATH/sql/create-db.sql)
+        aws ecs execute-command \
+          --cluster "$CLUSTER_NAME" \
+          --task "$TASK_ID" \
+          --container "$CONTAINER_NAME" \
+          --command "sh -c 'export PGPASSWORD=\"$pg_pass\" && psql $connection_opts -f /sql/create-db.sql -v db_name=$SERVICE_DB_NAME'" \
+          --interactive
       env:
-        docker_username: ${{ steps.login-ecr.outputs.docker_username_123456789012_dkr_ecr_us_east_1_amazonaws_com }}
-        docker_password: ${{ steps.login-ecr.outputs.docker_password_123456789012_dkr_ecr_us_east_1_amazonaws_com }}
+        CLUSTER_NAME: imagimaps-${{ inputs.environment }}-fargate
+        CONTAINER_NAME: ${{ steps.psql-bastion.outputs.container_name }}
+        TASK_ID: ${{ steps.psql-bastion.outputs.task_id }}
+        SERVICE_DB_NAME: ${{ inputs.service_name }}
+        ACTION_PATH: ${{ env.ACTION_PATH }}
+
+    - name: Destroy PSQL Bastion
+      if: false
+      shell: bash
+      run: |
+        echo "Setting number of psql bastions to 0"
+        aws ecs update-service \
+          --cluster "$CLUSTER_NAME" \
+          --service "$SERVICE_NAME" \
+          --desired-count 0 \
+          --no-cli-pager \
+          --query "service.deployments"
+        echo "All DB setup tasks have been completed"
+      env:
+        CLUSTER_NAME: imagimaps-${{ inputs.environment }}-fargate
+        SERVICE_NAME: psql-bastion
