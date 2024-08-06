@@ -81,7 +81,7 @@ resource "aws_ecs_task_definition" "service" {
         },
         {
           name  = "DB_PORT"
-          value = "${data.aws_db_instance.shared.db_instance_port}"
+          value = "${tostring(data.aws_db_instance.shared.db_instance_port)}"
         },
         {
           name  = "DB_NAME"
