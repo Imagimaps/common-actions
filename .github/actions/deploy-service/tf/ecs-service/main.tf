@@ -77,7 +77,7 @@ resource "aws_ecs_task_definition" "service" {
         },
         {
           name  = "DB_HOST"
-          value = "${data.aws_db_instance.shared.address}"
+          value = data.aws_db_instance.shared.address
         },
         {
           name  = "DB_PORT"
@@ -85,15 +85,15 @@ resource "aws_ecs_task_definition" "service" {
         },
         {
           name  = "DB_NAME"
-          value = "${local.db_name}"
+          value = local.db_name
         },
         {
           name  = "DB_USER"
-          value = "${local.db_user}"
+          value = local.db_user
         },
         {
           name  = "DB_PASSWORD"
-          value = "${local.db_password}"
+          value = local.db_password
         }
       ]
   }])
