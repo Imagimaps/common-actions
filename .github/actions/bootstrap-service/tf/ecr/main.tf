@@ -53,6 +53,18 @@ resource "aws_ecr_lifecycle_policy" "delete_stale_images" {
     rules = [
       {
         rulePriority = 1,
+        description  = "Expire images past 15 builds ago",
+        selection    = {
+          tagStatus = "untagged",
+          countType = "imageCountMoreThan",
+          countNumber = 15
+        },
+        action = {
+          type = "expire"
+        }
+      },
+      {
+        rulePriority = 2,
         description  = "Expire images older than 14 days",
         selection    = {
           tagStatus = "any",
@@ -64,18 +76,6 @@ resource "aws_ecr_lifecycle_policy" "delete_stale_images" {
           type = "expire"
         }
       },
-      {
-        rulePriority = 2,
-        description  = "Expire images past 15 builds ago",
-        selection    = {
-          tagStatus = "untagged",
-          countType = "imageCountMoreThan",
-          countNumber = 15
-        },
-        action = {
-          type = "expire"
-        }
-      }
     ]
   })
 }
