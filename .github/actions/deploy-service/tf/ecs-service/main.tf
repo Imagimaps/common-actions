@@ -76,12 +76,16 @@ resource "aws_ecs_task_definition" "service" {
           value = "AWS"
         },
         {
+          name  = "DB_CONNECTION_STYLE"
+          value = "rds_iam" // Currently ignored by the service
+        },
+        {
           name  = "DB_HOST"
           value = data.aws_db_instance.shared.address
         },
         {
           name  = "DB_PORT"
-          value = "${tostring(data.aws_db_instance.shared.db_instance_port)}"
+          value = "5432"
         },
         {
           name  = "DB_NAME"
