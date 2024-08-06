@@ -45,3 +45,37 @@ resource "aws_ecr_repository_policy" "policy" {
     ]
   })
 }
+
+resource "aws_ecr_lifecycle_policy" "delete_stale_images" {
+  repository = aws_ecr_repository.service.name
+
+  policy = jsonencode({
+    rules = [
+      {
+        rulePriority = 1,
+        description  = "Expire images older than 14 days",
+        selection    = {
+          tagStatus = "any",
+          countType = "sinceImagePushed",
+          countUnit = "days",
+          countNumber = 14
+        },
+        action = {
+          type = "expire"
+        }
+      },
+      {
+        rulePriority = 2,
+        description  = "Expire images past 15 builds ago",
+        selection    = {
+          tagStatus = "any",
+          countType = "imageCountMoreThan",
+          countNumber = 15
+        },
+        action = {
+          type = "expire"
+        }
+      }
+    ]
+  })
+}
