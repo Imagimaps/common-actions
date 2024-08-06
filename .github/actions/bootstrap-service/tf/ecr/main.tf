@@ -68,7 +68,7 @@ resource "aws_ecr_lifecycle_policy" "delete_stale_images" {
         rulePriority = 2,
         description  = "Expire images past 15 builds ago",
         selection    = {
-          tagStatus = "tagged",
+          tagStatus = "untagged",
           countType = "imageCountMoreThan",
           countNumber = 15
         },
