@@ -1,4 +1,5 @@
 locals {
+  db_name     = "${var.environment_short_name}_${replace(var.service_name, "-", "_")}"
   db_user     = "${var.service_name}-tmp"
   db_password = jsondecode(data.aws_secretsmanager_secret_version.db_secrets.secret_string)["DB_PASSWORD"]
 }
@@ -76,15 +77,15 @@ resource "aws_ecs_task_definition" "service" {
         },
         {
           name  = "DB_HOST"
-          value = data.aws_db_instance.address
+          value = data.aws_db_instance.shared.address
         },
         {
           name  = "DB_PORT"
-          value = data.aws_db_instance.db_instance_port
+          value = data.aws_db_instance.shared.db_instance_port
         },
         {
           name  = "DB_NAME"
-          value = "${var.environment_short_name}_${replace(var.service_name, "-", "_")}"
+          value = local.db_name
         },
         {
           name  = "DB_USER"
