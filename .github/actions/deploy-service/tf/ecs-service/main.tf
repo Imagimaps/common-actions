@@ -73,7 +73,7 @@ resource "aws_ecs_task_definition" "service" {
       environment = [
         {
           name  = "PORT"
-          value = "${var.container_port}"
+          value = "${tostring(var.container_port)}"
         },
         {
           name  = "HOST_TYPE"
