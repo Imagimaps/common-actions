@@ -96,7 +96,7 @@ resource "aws_ecs_task_definition" "service" {
           value = local.db_user
         },
         {
-          name  = "DB_PASSWORD"
+          name  = "DB_PASS"
           value = local.db_password
         }
       ]
