@@ -1,6 +1,6 @@
 locals {
   db_name     = "${var.service_name}-${var.environment}"
-  db_user     = "${var.service_name}-tmp"
+  db_user     = "${var.service_name}"
   db_password = jsondecode(data.aws_secretsmanager_secret_version.db_secrets.secret_string)["DB_PASSWORD"]
 }
 
