@@ -77,7 +77,7 @@ resource "aws_ecs_task_definition" "service" {
         },
         {
           name  = "DB_CON_TYPE"
-          value = "rds_iam" // Currently ignored by the service
+          value = "rds_iam"
         },
         {
           name  = "DB_HOST"
