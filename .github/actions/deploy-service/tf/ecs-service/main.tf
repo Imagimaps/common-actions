@@ -76,7 +76,7 @@ resource "aws_ecs_task_definition" "service" {
           value = "AWS"
         },
         {
-          name  = "DB_CONNECTION_STYLE"
+          name  = "DB_CON_TYPE"
           value = "rds_iam" // Currently ignored by the service
         },
         {
