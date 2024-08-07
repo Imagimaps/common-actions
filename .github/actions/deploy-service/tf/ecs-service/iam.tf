@@ -116,7 +116,6 @@ resource "aws_iam_role_policy" "ecr_task_runtime_inline_policy" {
         Effect = "Allow"
         Resource = [
           "arn:aws:rds-db:${local.aws_region}:${local.aws_account_id}:dbuser:${data.aws_db_instance.shared.resource_id}/${var.service_name}",
-          "arn:aws:rds-db:${local.aws_region}:${local.aws_account_id}:dbuser:${data.aws_db_instance.shared.resource_id}/${var.service_name}-tmp",
         ]
       },
       {
