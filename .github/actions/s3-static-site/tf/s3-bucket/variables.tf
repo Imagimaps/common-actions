@@ -21,7 +21,7 @@ variable "write_access_entities" {
   default     = []
   validation {
     condition = alltrue([
-      for arn in var.read_access_entities : can(regex("^arn:aws:iam::[0-9]{12}:role/.+$", arn))
+      for arn in var.write_access_entities : can(regex("^arn:aws:iam::[0-9]{12}:role/.+$", arn))
     ])
     error_message = "Each write access entity must be a valid IAM role ARN."
   }
