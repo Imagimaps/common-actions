@@ -29,11 +29,12 @@ data "aws_iam_policy_document" "bucket_policy" {
       ]
     }
     condition {
-      test     = "ForAllValues:StringLike"
+      test     = "StringLike"
       variable = "aws:userid"
       values   = [
-        "arn:aws:sts::${local.account_id}:assumed-role/aws-reserved/sso.amazonaws.com/${local.region}/AWSReservedSSO_AWSAdministratorAccess*",
-        "arn:aws:sts::${local.account_id}:assumed-role/aws-reserved/sso.amazonaws.com/${local.region}/AWSReservedSSO_AWSPowerUserAccess*",
+        "arn:aws:iam::${local.account_id}:role/aws-reserved/sso.amazonaws.com/${local.region}/AWSReservedSSO_AWSAdministratorAccess*",
+        "arn:aws:iam::${local.account_id}:role/aws-reserved/sso.amazonaws.com/${local.region}/AWSReservedSSO_AWSPowerUserAccess*",
+        "arn:aws:iam::${local.account_id}:role/platform/platform-deploy",
       ]
     }
   }
