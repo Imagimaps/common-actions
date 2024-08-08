@@ -34,7 +34,21 @@ data "aws_iam_policy_document" "bucket_policy" {
       values   = [
         "arn:aws:iam::${local.account_id}:role/aws-reserved/sso.amazonaws.com/${local.region}/AWSReservedSSO_AWSAdministratorAccess*",
         "arn:aws:iam::${local.account_id}:role/aws-reserved/sso.amazonaws.com/${local.region}/AWSReservedSSO_AWSPowerUserAccess*",
-        "arn:aws:iam::${local.account_id}:role/platform/platform-deploy",
+      ]
+    }
+  }
+
+  statement {
+    sid     = "PipelineAccess"
+    actions = ["s3:*"]
+    resources = [
+      aws_s3_bucket.this.arn,
+      "${aws_s3_bucket.this.arn}/*"
+    ]
+    principals {
+      type        = "AWS"
+      identifiers = [
+        "arn:aws:sts::${local.account_id}:assumed-role/platform-deploy/GitHubActions",
       ]
     }
   }
