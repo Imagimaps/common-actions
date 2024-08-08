@@ -7,6 +7,11 @@ resource "aws_s3_bucket" "this" {
   bucket = var.bucket_name
   
   force_destroy = true
+
+  website {
+    index_document = "index.html"
+    error_document = "error.html"
+  }
 }
 
 data "aws_iam_policy_document" "bucket_policy" {
@@ -31,6 +36,14 @@ data "aws_iam_policy_document" "bucket_policy" {
         "arn:aws:sts::${local.account_id}:assumed-role/aws-reserved/sso.amazonaws.com/${local.region}/AWSReservedSSO_AWSPowerUserAccess*",
       ]
     }
+  }
+
+  content {
+    sid      = "PublicReadGetObject"
+    actions  = ["s3:GetObject"]
+    resources = [
+      "${aws_s3_bucket.this.arn}/*"
+    ]
   }
 
   dynamic "statement" {
