@@ -38,7 +38,7 @@ data "aws_iam_policy_document" "bucket_policy" {
     }
   }
 
-  content {
+  statement {
     sid      = "PublicReadGetObject"
     actions  = ["s3:GetObject"]
     resources = [
