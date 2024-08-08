@@ -33,7 +33,7 @@ data "aws_iam_policy_document" "bucket_policy" {
   }
 
   dynamic "statement" {
-    for_each = length(var.read_access_entities) > 0 ? {1} : {}
+    for_each = length(var.read_access_entities) > 0 ? [1] : []
     content {
       sid       = "ReadAccess"
       actions   = [
@@ -52,7 +52,7 @@ data "aws_iam_policy_document" "bucket_policy" {
   }
   
   dynamic "statement" {
-    for_each = length(var.write_access_entities) > 0 ? {1} : {}
+    for_each = length(var.write_access_entities) > 0 ? [1] : []
     content {
       sid       = "WriteAccess"
       actions   = [
