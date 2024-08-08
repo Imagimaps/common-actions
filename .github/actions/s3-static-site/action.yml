@@ -62,7 +62,7 @@ runs:
           exit 1
         fi
         echo "S3 Bucket Name: $bucket_name" >> $GITHUB_STEP_SUMMARY
-        echo "name=$bucket_name" >> $GITHUB_OUTPUTS
+        echo "name=$bucket_name" >> $GITHUB_OUTPUT
 
     - name: Bootstrap S3 Static Site Bucket for ${{ inputs.module }} ${{ inputs.environment }}
       uses: Imagimaps/common-actions/.github/actions/deploy-tf@main
