@@ -41,6 +41,10 @@ data "aws_iam_policy_document" "bucket_policy" {
   statement {
     sid      = "PublicReadGetObject"
     actions  = ["s3:GetObject"]
+    principals {
+      type        = "AWS"
+      identifiers = ["*"]
+    }
     resources = [
       "${aws_s3_bucket.this.arn}/*"
     ]
