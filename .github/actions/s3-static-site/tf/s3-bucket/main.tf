@@ -32,35 +32,41 @@ data "aws_iam_policy_document" "bucket_policy" {
     }
   }
 
-  statement {
-    sid       = "ReadAccess"
-    actions   = [
-      "s3:Get*",
-      "s3:List*",
-    ]
-    resources = [
-      aws_s3_bucket.this.arn,
-      "${aws_s3_bucket.this.arn}/*"
-    ]
-    principals {
-      type        = "AWS"
-      identifiers = var.read_access_entities
+  dynamic "statement" {
+    for_each = var.read_access_entities.length > 0 ? toset(var.read_access_entities) : []
+    content {
+      sid       = "ReadAccess"
+      actions   = [
+        "s3:Get*",
+        "s3:List*",
+      ]
+      resources = [
+        aws_s3_bucket.this.arn,
+        "${aws_s3_bucket.this.arn}/*"
+      ]
+      principals {
+        type        = "AWS"
+        identifiers = var.read_access_entities
+      }
     }
   }
-
-  statement {
-    sid       = "WriteAccess"
-    actions   = [
-      "s3:Put*",
-      "s3:Delete*",
-    ]
-    resources = [
-      aws_s3_bucket.this.arn,
-      "${aws_s3_bucket.this.arn}/*"
-    ]
-    principals {
-      type        = "AWS"
-      identifiers = var.write_access_entities
+  
+  dynamic "statement" {
+    for_each = var.write_access_entities.length > 0 ? toset(var.write_access_entities) : []
+    content {
+      sid       = "WriteAccess"
+      actions   = [
+        "s3:Put*",
+        "s3:Delete*",
+      ]
+      resources = [
+        aws_s3_bucket.this.arn,
+        "${aws_s3_bucket.this.arn}/*"
+      ]
+      principals {
+        type        = "AWS"
+        identifiers = var.write_access_entities
+      }
     }
   }
 }
