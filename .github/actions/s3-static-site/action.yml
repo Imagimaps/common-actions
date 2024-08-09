@@ -24,6 +24,10 @@ inputs:
     description: AWS Region where the S3 bucket is to be created
     required: false
     default: ap-southeast-2
+  soft_destroy:
+    description: Whether to destroy the bucket and CloudFront distribution
+    required: false
+    default: false
 outputs:
   bucket-name:
     description: The name of the S3 bucket created

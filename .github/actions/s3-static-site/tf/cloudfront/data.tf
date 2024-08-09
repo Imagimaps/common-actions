@@ -8,7 +8,7 @@ data "aws_route53_zone" "root" {
 }
 
 data "aws_acm_certificate" "domain_cert" {
-  provider    = "aws_us_east_1"
+  provider    = aws.us_east_1
   domain      = var.fq_domain_name
   types       = ["AMAZON_ISSUED"]
   most_recent = true
