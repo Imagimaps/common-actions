@@ -1,9 +1,9 @@
 resource "aws_route53_record" "cf_alias" {
   name    = var.fq_domain_name
-  type    = A
+  type    = "A"
   zone_id = data.aws_route53_zone.root.zone_id
   
-  ttl             = 60
+  ttl             = 300
   allow_overwrite = true
 
   alias {
