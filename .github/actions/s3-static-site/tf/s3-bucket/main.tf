@@ -17,6 +17,7 @@ resource "aws_s3_bucket" "this" {
 data "aws_iam_policy_document" "bucket_policy" {
   statement {
     sid       = "AdminAccess"
+    effect    = "Allow"
     actions   = ["s3:*"]
     resources = [
       aws_s3_bucket.this.arn,
@@ -28,33 +29,10 @@ data "aws_iam_policy_document" "bucket_policy" {
         "arn:aws:iam::${local.account_id}:root",
       ]
     }
-    condition {
-      test     = "StringLike"
-      variable = "aws:userid"
-      values   = [
-        "arn:aws:iam::${local.account_id}:role/aws-reserved/sso.amazonaws.com/${local.region}/AWSReservedSSO_AWSAdministratorAccess*",
-        "arn:aws:iam::${local.account_id}:role/aws-reserved/sso.amazonaws.com/${local.region}/AWSReservedSSO_AWSPowerUserAccess*",
-      ]
-    }
   }
 
   statement {
-    sid     = "PipelineAccess"
-    actions = ["s3:*"]
-    resources = [
-      aws_s3_bucket.this.arn,
-      "${aws_s3_bucket.this.arn}/*"
-    ]
-    principals {
-      type        = "AWS"
-      identifiers = [
-        "arn:aws:sts::${local.account_id}:assumed-role/platform-deploy/GitHubActions",
-      ]
-    }
-  }
-
-  statement {
-    sid      = "PublicReadGetObject"
+    sid      = "PublicGetObject"
     actions  = ["s3:GetObject"]
     principals {
       type        = "AWS"
