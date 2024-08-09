@@ -12,7 +12,7 @@ resource "aws_cloudfront_distribution" "cdn" {
   aliases = [var.fq_domain_name]
 
   default_cache_behavior {
-    allowed_methods  = ["GET", "HEAD", "OPTIONS", "POST", "PUT"]
+    allowed_methods  = ["HEAD", "DELETE", "POST", "GET", "OPTIONS", "PUT", "PATCH"]
     cached_methods   = ["GET", "HEAD"]
     target_origin_id = var.fq_domain_name
 
