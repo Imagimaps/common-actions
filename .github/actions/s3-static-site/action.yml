@@ -85,7 +85,7 @@ runs:
         tf_module_dir: ${{ env.ACTION_PATH }}/tf/cert
         tf_workspace: services
         tf_vars: |
-          root_domain=${{ inputs.domain }}
+          root_domain=${{ steps.domain.outputs.name }}
           requested_fq_domain=${{ steps.domain.outputs.name }}
         aws_role_arn: ${{ inputs.aws_role_arn }}
         aws_account_id: ${{ inputs.aws_account_id }}
