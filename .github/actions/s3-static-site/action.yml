@@ -90,3 +90,17 @@ runs:
         aws_role_arn: ${{ inputs.aws_role_arn }}
         aws_account_id: ${{ inputs.aws_account_id }}
         aws_region: ${{ inputs.aws_region }}
+
+    - name: Setup CDN for ${{ inputs.module }} ${{ inputs.environment }}
+      uses: Imagimaps/common-actions/.github/actions/deploy-tf@main
+      with:
+        environment: ${{ inputs.environment }}
+        tf_module_name: cloudfront
+        tf_module_dir: ${{ env.ACTION_PATH }}/tf/cloudfront
+        tf_workspace: services
+        tf_vars: |
+          root_domain=${{ steps.domain.outputs.name }}
+          fq_domain_name=${{ steps.domain.outputs.name }}
+        aws_role_arn: ${{ inputs.aws_role_arn }}
+        aws_account_id: ${{ inputs.aws_account_id }}
+        aws_region: ${{ inputs.aws_region }}
