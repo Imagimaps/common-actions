@@ -41,28 +41,28 @@ runs:
         echo "ts=$action_start_ts" >> $GITHUB_OUTPUT
         echo "ACTION_PATH=$(realpath ${{ github.action_path }})" >> $GITHUB_ENV
 
-    - name: Assemble S3 Bucket Name
-      id: bucket-data
+    - name: Assemble Website Domain
+      id: domain
       shell: bash
       run: |
-        bucket_name="${{ inputs.environment_short_name }}.${{ inputs.domain }}"
+        domain_name="${{ inputs.environment_short_name }}.${{ inputs.domain }}"
         if [ -n "${{ inputs.sub_environment }}" ]; then
-          bucket_name="${bucket_name}.${inputs.sub_environment}"
+          domain_name="${domain_name}.${inputs.sub_environment}"
         fi
-        if [[ ${#bucket_name} -lt 3 || ${#bucket_name} -gt 63 ]]; then
+        if [[ ${#domain_name} -lt 3 || ${#domain_name} -gt 63 ]]; then
           echo "Bucket name must be between 3 and 63 characters long."
           exit 1
         fi
-        if [[ ! "$bucket_name" =~ ^[a-z0-9]([a-z0-9.-]*[a-z0-9])?$ ]]; then
+        if [[ ! "$domain_name" =~ ^[a-z0-9]([a-z0-9.-]*[a-z0-9])?$ ]]; then
           echo "Bucket name can only contain lowercase letters, numbers, dots (.), and hyphens (-), and must start and end with a letter or number."
           exit 1
         fi
-        if [[ "$bucket_name" =~ \.\. ]]; then
+        if [[ "$domain_name" =~ \.\. ]]; then
           echo "Bucket name must not contain two adjacent periods."
           exit 1
         fi
-        echo "S3 Bucket Name: $bucket_name" >> $GITHUB_STEP_SUMMARY
-        echo "name=$bucket_name" >> $GITHUB_OUTPUT
+        echo "S3 Bucket Name: $domain_name" >> $GITHUB_STEP_SUMMARY
+        echo "name=$domain_name" >> $GITHUB_OUTPUT
 
     - name: Bootstrap S3 Static Site Bucket for ${{ inputs.module }} ${{ inputs.environment }}
       uses: Imagimaps/common-actions/.github/actions/deploy-tf@main
@@ -72,7 +72,21 @@ runs:
         tf_module_dir: ${{ env.ACTION_PATH }}/tf/s3-bucket
         tf_workspace: services
         tf_vars: |
-          bucket_name=${{ steps.bucket-data.outputs.name }}
+          bucket_name=${{ steps.domain.outputs.name }}
+        aws_role_arn: ${{ inputs.aws_role_arn }}
+        aws_account_id: ${{ inputs.aws_account_id }}
+        aws_region: ${{ inputs.aws_region }}
+
+    - name: Request Cert for ${{ inputs.module }} ${{ inputs.environment }}
+      uses: Imagimaps/common-actions/.github/actions/deploy-tf@main
+      with:
+        environment: ${{ inputs.environment }}
+        tf_module_name: cert
+        tf_module_dir: ${{ env.ACTION_PATH }}/tf/cert
+        tf_workspace: services
+        tf_vars: |
+          root_domain=${{ inputs.domain }}
+          requested_fq_domain=${{ steps.domain.outputs.name }}
         aws_role_arn: ${{ inputs.aws_role_arn }}
         aws_account_id: ${{ inputs.aws_account_id }}
         aws_region: ${{ inputs.aws_region }}
