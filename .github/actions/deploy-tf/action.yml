@@ -93,16 +93,22 @@ runs:
         if [ -n "$FILE_PATH" ]; then
           echo "imaginarium.yml found at $FILE_PATH"
           echo "path=$FILE_PATH" >> $GITHUB_OUTPUT
+          RELATIVE_PATH=$(realpath --relative-to="$GITHUB_WORKSPACE" "$FILE_PATH")
+          echo "relative_path=$RELATIVE_PATH" >> $GITHUB_OUTPUT
         else
           echo "imaginarium.yml not found"
         fi
 
     - name: dbg imaginarium.yml
+      continue-on-error: true
       if: steps.imaginarium.outputs.path
       shell: bash
       run: |
         ls -la ${{ steps.imaginarium.outputs.path }}
         cat ${{ steps.imaginarium.outputs.path }}
+        pwd
+        ls -la ${{ steps.imaginarium.outputs.relative_path }}
+        cat ${{ steps.imaginarium.outputs.relative_path }}
 
     - name: Retrieve list of secrets needed for module (if any)
       continue-on-error: true
@@ -110,7 +116,7 @@ runs:
       id: yq_needs_secrets
       uses: mikefarah/yq@master
       with:
-        cmd: yq -p yaml -o json -I 0 '.needs.secrets' ${{ steps.imaginarium.outputs.path }}
+        cmd: yq -p yaml -o json -I 0 '.needs.secrets' ${{ steps.imaginarium.outputs.relative_path }}
 
     - name: Process Secrets Requirements
       continue-on-error: true
