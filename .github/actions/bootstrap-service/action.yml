@@ -1,5 +1,5 @@
-name: Deploy Service
-description: Deploy a service to the platform
+name: Bootstrap Service
+description: Bootstrap a services infrastructure
 inputs:
   service_name:
     description: The name of the service
@@ -10,14 +10,17 @@ inputs:
   environment_short_name:
     description: The short name of the environment
     required: true
-  aws_role_arn:
-    description: The ARN of the role which can create repositories in ECR and push images to them
-    required: true
   aws_account_id:
     description: The AWS account ID where the ECR repository is located
     required: true
+  aws_role_arn:
+    description: The ARN of the role which can create infra for the service
+    required: true
   artifacts_aws_account_id:
     description: The AWS account ID where the ECR repository is located
+    required: true
+  artifacts_aws_role_arn:
+    description: The ARN of the role which can create repositories in ECR and push images to them
     required: true
   aws_region:
     description: The region where the ECR repository is located
@@ -39,7 +42,7 @@ runs:
         echo "Bootstrapping Service [${{ inputs.service_name }}]"
         echo "ACTION_PATH=$(realpath ${{ github.action_path }})" >> $GITHUB_ENV
 
-    - name: Bootstrap Service ${{ inputs.environment }} Infrastructure
+    - name: Bootstrap Service ${{ inputs.environment }} ECR
       uses: Imagimaps/common-actions/.github/actions/deploy-tf@main
       with:
         environment: ${{ inputs.environment }}
@@ -49,8 +52,28 @@ runs:
         tf_vars: |
           project=imagimaps
           service_name=${{ inputs.service_name }}
+        aws_role_arn: ${{ inputs.artifacts_aws_role_arn }}
+        aws_account_id: ${{ inputs.artifacts_aws_account_id }}
+        aws_region: ${{ inputs.aws_region }}
+
+    - name: Bootstrap Service ${{ env.environment }} Secrets
+      uses: Imagimaps/common-actions/.github/actions/deploy-tf@main
+      with:
+        environment: ${{ env.environment }}
+        tf_module_name: secrets
+        tf_module_dir: ${{ env.ACTION_PATH }}/tf/secrets
+        tf_workspace: services
+        tf_vars: |
+          project=imagimaps
+          service_name=${{ inputs.service_name }}
         aws_role_arn: ${{ inputs.aws_role_arn }}
         aws_account_id: ${{ inputs.aws_account_id }}
         aws_region: ${{ inputs.aws_region }}
 
-// TODO: Bootstrap all the other stuff needed for a service
+    - name: Bootstrap Service DB
+      uses: Imagimaps/common-actions/.github/actions/psql-client@main
+      with:
+        service: ${{ inputs.service_name }}
+        environment: ${{ env.environment }}
+        aws_role_arn: ${{ inputs.aws_role_arn }}
+        aws_region: ${{ inputs.aws_region }}
