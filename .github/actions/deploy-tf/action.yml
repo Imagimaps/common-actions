@@ -133,7 +133,7 @@ runs:
           -var="project=imagimaps" \
           -var="environment=${{ inputs.environment }}" \
           ${{ steps.process_inputs.outputs.tf_vars }} \
-          -out=imagimaps.${{ inputs.tf_workspace }}.${{ inputs.tf_module_name }}.destroy.tfplan \
+          -out=imagimaps.${{ inputs.tf_workspace }}.${{ inputs.tf_module_name }}.tfplan \
           -input=false \
           -detailed-exitcode \
           -no-color
