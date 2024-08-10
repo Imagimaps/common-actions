@@ -47,9 +47,6 @@ runs:
         echo "ts=$action_start_ts" >> $GITHUB_OUTPUT
         echo "Running in destroy mode: ${{ inputs.destroy }}"
 
-    # - name: Checkout code
-    #   uses: actions/checkout@v4
-
     - name: Login to AWS
       id: login-aws
       uses: aws-actions/configure-aws-credentials@v4
