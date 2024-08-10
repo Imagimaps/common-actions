@@ -26,6 +26,10 @@ inputs:
     description: The region where the ECR repository is located
     required: false
     default: ap-southeast-2
+  destroy:
+    description: Whether to destroy the Terraform module
+    required: false
+    default: false
 outputs:
   action_runtime:
     description: The duration of the action in seconds
@@ -121,15 +125,28 @@ runs:
         set +e
         env | grep TF_VAR
         export TF_VAR_web_identity_token_file=${{ env.AWS_WEB_IDENTITY_TOKEN_FILE }}
+        if [ "${{ inputs.destroy }}" == "true" ]; then
         terraform plan \
+          -destroy \
           -var="aws_region=${{ inputs.aws_region }}" \
           -var="project=imagimaps" \
           -var="environment=${{ inputs.environment }}" \
           ${{ steps.process_inputs.outputs.tf_vars }} \
-          -out=imagimaps.${{ inputs.tf_workspace }}.${{ inputs.tf_module_name }}.tfplan \
+          -out=imagimaps.${{ inputs.tf_workspace }}.${{ inputs.tf_module_name }}.destroy.tfplan \
           -input=false \
           -detailed-exitcode \
           -no-color
+        else
+          terraform plan \
+            -var="aws_region=${{ inputs.aws_region }}" \
+            -var="project=imagimaps" \
+            -var="environment=${{ inputs.environment }}" \
+            ${{ steps.process_inputs.outputs.tf_vars }} \
+            -out=imagimaps.${{ inputs.tf_workspace }}.${{ inputs.tf_module_name }}.tfplan \
+            -input=false \
+            -detailed-exitcode \
+            -no-color
+        fi
         plan_exit_code=$?
         set -e
         echo "exit_code=$plan_exit_code" >> $GITHUB_OUTPUT
