@@ -27,7 +27,7 @@ inputs:
   soft_destroy:
     description: Whether to destroy the bucket and CloudFront distribution
     required: false
-    default: false
+    default: "false"
 outputs:
   bucket-name:
     description: The name of the S3 bucket created
@@ -69,7 +69,7 @@ runs:
         echo "name=$domain_name" >> $GITHUB_OUTPUT
 
     - name: Bootstrap S3 Static Site Bucket for ${{ inputs.module }} ${{ inputs.environment }}
-      if: ${{ !inputs.soft_destroy }}
+      if: ${{ inputs.soft_destroy != 'true' }}
       uses: Imagimaps/common-actions/.github/actions/deploy-tf@main
       with:
         environment: ${{ inputs.environment }}
@@ -97,7 +97,7 @@ runs:
         aws_region: ${{ inputs.aws_region }}
 
     - name: Setup CDN for ${{ inputs.module }} ${{ inputs.environment }}
-      if: ${{ !inputs.soft_destroy }}
+      if: ${{ inputs.soft_destroy != 'true' }}
       uses: Imagimaps/common-actions/.github/actions/deploy-tf@main
       with:
         environment: ${{ inputs.environment }}
@@ -112,7 +112,7 @@ runs:
         aws_region: ${{ inputs.aws_region }}
 
     - name: Destroy CDN for ${{ inputs.module }} ${{ inputs.environment }}
-      if: ${{ inputs.soft_destroy }}
+      if: ${{ inputs.soft_destroy == 'true' }}
       uses: Imagimaps/common-actions/.github/actions/deploy-tf@main
       with:
         environment: ${{ inputs.environment }}
@@ -128,7 +128,7 @@ runs:
         destroy: ${{ inputs.soft_destroy }}
 
     - name: Destroy S3 Static Site Bucket for ${{ inputs.module }} ${{ inputs.environment }}
-      if: ${{ inputs.soft_destroy }}
+      if: ${{ inputs.soft_destroy == 'true' }}
       uses: Imagimaps/common-actions/.github/actions/deploy-tf@main
       with:
         environment: ${{ inputs.environment }}
