@@ -42,10 +42,10 @@ runs:
         echo "Bootstrapping Service [${{ inputs.service_name }}]"
         echo "ACTION_PATH=$(realpath ${{ github.action_path }})" >> $GITHUB_ENV
 
-    - name: Bootstrap Service ${{ inputs.environment }} ECR
+    - name: Bootstrap Service ECR
       uses: Imagimaps/common-actions/.github/actions/deploy-tf@main
       with:
-        environment: ${{ inputs.environment }}
+        environment: artifacts
         tf_module_name: ecs-service
         tf_module_dir: ${{ env.ACTION_PATH }}/tf/ecr
         tf_workspace: artifacts
