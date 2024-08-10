@@ -86,6 +86,8 @@ runs:
         echo "Starting Search for imaginarium.yml at $GITHUB_WORKSPACE"
         START_DIR="${GITHUB_WORKSPACE:-.}"
         echo "START_DIR=$START_DIR"
+        ls -la $START_DIR
+        find "$START_DIR" -name "imaginarium.yml" -print -quit
         FILE_PATH=$(find "$START_DIR" -name "imaginarium.yml" -print -quit)
         echo "FILE_PATH=$FILE_PATH"
 
