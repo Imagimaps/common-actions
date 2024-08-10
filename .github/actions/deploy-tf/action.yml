@@ -79,12 +79,26 @@ runs:
           -backend-config="dynamodb_table=tf-state-lock-${{ inputs.aws_region }}-${{ inputs.aws_account_id }}"
         terraform workspace select -or-create ${{ inputs.tf_workspace }}
 
-    - name: Get an entry with a variable that might contain dots or spaces
+    - name: Find imaginarium.yml
+      id: imaginarium
+      run: |
+        START_DIR="${GITHUB_WORKSPACE:-.}"
+        FILE_PATH=$(find "$START_DIR" -name "imaginarium.yml" -print -quit)
+
+        if [ -n "$FILE_PATH" ]; then
+          echo "imaginarium.yml found at $FILE_PATH"
+          echo "path=$FILE_PATH" >> $GITHUB_OUTPUT
+        else
+          echo "imaginarium.yml not found"
+        fi
+
+    - name: Retrieve list of secrets needed for module (if any)
       continue-on-error: true
+      if: steps.imaginarium.outputs.path
       id: yq_needs_secrets
       uses: mikefarah/yq@master
       with:
-        cmd: yq -p yaml -o json -I 0 '.needs.secrets' imaginarium.yml
+        cmd: yq -p yaml -o json -I 0 '.needs.secrets' ${{ steps.imaginarium.outputs.path }}
 
     - name: Process Secrets Requirements
       continue-on-error: true
