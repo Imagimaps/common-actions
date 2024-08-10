@@ -45,7 +45,7 @@ runs:
         echo "Running in destroy mode: ${{ inputs.destroy }}"
 
     - name: Create Fargate Service
-      if: ${{ !inputs.destroy }}
+      if: ${{ inputs.destroy == "false" }}
       uses: Imagimaps/common-actions/.github/actions/deploy-tf@main
       with:
         environment: ${{ inputs.environment }}
@@ -62,7 +62,7 @@ runs:
         aws_region: ${{ inputs.aws_region }}
 
     - name: Destroy Fargate Service
-      if: ${{ inputs.destroy }}
+      if: ${{ inputs.destroy == "true" }}
       uses: Imagimaps/common-actions/.github/actions/deploy-tf@main
       with:
         environment: ${{ inputs.environment }}
