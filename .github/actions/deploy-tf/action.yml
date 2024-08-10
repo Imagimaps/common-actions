@@ -85,10 +85,7 @@ runs:
       run: |
         START_DIR="${GITHUB_WORKSPACE:-.}"
         echo "Starting Search for imaginarium.yml at $START_DIR"
-        ls -la $START_DIR
-        find "$START_DIR" -name "imaginarium.yml" -print -quit
         FILE_PATH=$(find "$START_DIR" -name "imaginarium.yml" -print -quit)
-        echo "FILE_PATH=$FILE_PATH"
 
         if [ -n "$FILE_PATH" ]; then
           echo "imaginarium.yml found at $FILE_PATH"
@@ -98,17 +95,6 @@ runs:
         else
           echo "imaginarium.yml not found"
         fi
-
-    - name: dbg imaginarium.yml
-      continue-on-error: true
-      if: steps.imaginarium.outputs.path
-      shell: bash
-      run: |
-        ls -la ${{ steps.imaginarium.outputs.path }}
-        cat ${{ steps.imaginarium.outputs.path }}
-        pwd
-        ls -la ${{ steps.imaginarium.outputs.relative_path }}
-        cat ${{ steps.imaginarium.outputs.relative_path }}
 
     - name: Retrieve list of secrets needed for module (if any)
       continue-on-error: true

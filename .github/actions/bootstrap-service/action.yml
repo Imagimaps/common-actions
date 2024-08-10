@@ -39,7 +39,7 @@ runs:
       id: start
       shell: bash
       run: |
-        echo "Bootstrapping Service [${{ inputs.service_name }}]"
+        echo "Bootstrapping Service [${{ inputs.service_name }}] in ${{ inputs.environment }} (${{ inputs.environment_short_name }}) environment"
         echo "ACTION_PATH=$(realpath ${{ github.action_path }})" >> $GITHUB_ENV
 
     - name: Bootstrap Service ECR
@@ -56,10 +56,10 @@ runs:
         aws_account_id: ${{ inputs.artifacts_aws_account_id }}
         aws_region: ${{ inputs.aws_region }}
 
-    - name: Bootstrap Service ${{ env.environment }} Secrets
+    - name: Bootstrap Service ${{ inputs.environment }} Secrets
       uses: Imagimaps/common-actions/.github/actions/deploy-tf@main
       with:
-        environment: ${{ env.environment }}
+        environment: ${{ inputs.environment }}
         tf_module_name: secrets
         tf_module_dir: ${{ env.ACTION_PATH }}/tf/secrets
         tf_workspace: services
@@ -74,6 +74,6 @@ runs:
       uses: Imagimaps/common-actions/.github/actions/psql-client@main
       with:
         service: ${{ inputs.service_name }}
-        environment: ${{ env.environment }}
+        environment: ${{ inputs.environment }}
         aws_role_arn: ${{ inputs.aws_role_arn }}
         aws_region: ${{ inputs.aws_region }}
