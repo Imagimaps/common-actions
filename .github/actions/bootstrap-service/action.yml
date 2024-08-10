@@ -52,3 +52,5 @@ runs:
         aws_role_arn: ${{ inputs.aws_role_arn }}
         aws_account_id: ${{ inputs.aws_account_id }}
         aws_region: ${{ inputs.aws_region }}
+
+// TODO: Bootstrap all the other stuff needed for a service
