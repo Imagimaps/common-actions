@@ -81,6 +81,7 @@ runs:
 
     - name: Find imaginarium.yml
       id: imaginarium
+      shell: bash
       run: |
         START_DIR="${GITHUB_WORKSPACE:-.}"
         FILE_PATH=$(find "$START_DIR" -name "imaginarium.yml" -print -quit)
