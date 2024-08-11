@@ -22,4 +22,5 @@ variable "service_name" {
 variable "secret_names" {
   type        = list(string)
   description = "List of secret names to create in Secrets Manager"
+  default     = []
 }
