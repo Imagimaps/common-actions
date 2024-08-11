@@ -104,8 +104,8 @@ runs:
       uses: Imagimaps/common-actions/.github/actions/deploy-tf@main
       with:
         environment: ${{ inputs.environment }}
-        tf_module_name: lb-listener
-        tf_module_dir: ${{ env.ACTION_PATH }}/tf/lb-listener
+        tf_module_name: lb-target-group
+        tf_module_dir: ${{ env.ACTION_PATH }}/tf/lb-target-group
         tf_workspace: service.${{ inputs.service_name }}
         tf_vars: |
           project=imagimaps
@@ -128,8 +128,8 @@ runs:
       uses: Imagimaps/common-actions/.github/actions/deploy-tf@main
       with:
         environment: ${{ inputs.environment }}
-        tf_module_name: lb-listener
-        tf_module_dir: ${{ env.ACTION_PATH }}/tf/lb-listener
+        tf_module_name: lb-target-group
+        tf_module_dir: ${{ env.ACTION_PATH }}/tf/lb-target-group
         tf_workspace: service.${{ inputs.service_name }}
         tf_vars: |
           project=imagimaps
