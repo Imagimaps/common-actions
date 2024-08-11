@@ -16,7 +16,7 @@ resource "aws_lb_target_group" "service_target_group" {
 }
 
 resource "aws_lb_listener_rule" "api" {
-  listener_arn = aws_lb_listener.api_listener.arn
+  listener_arn = data.aws_lb_listener.api_listener.arn
   priority     = 100
 
   action {
