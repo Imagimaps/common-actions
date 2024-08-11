@@ -57,8 +57,8 @@ resource "aws_iam_role_policy" "ecr_readonly_inline_policy" {
         ]
         Effect = "Allow"
         Resource = [
-          "${aws_cloudwatch_log_group.service_log_group.arn}",
-          "${aws_cloudwatch_log_group.service_log_group.arn}:*",
+          "${data.aws_cloudwatch_log_group.service_log_group.arn}",
+          "${data.aws_cloudwatch_log_group.service_log_group.arn}:*",
         ]
       }
     ]
