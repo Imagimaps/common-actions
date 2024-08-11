@@ -11,3 +11,8 @@ data "aws_vpc" "vpc" {
     Project     = var.project
   }
 }
+
+data "aws_lb_listener" "api_listener" {
+  load_balancer_arn = data.aws_lb.alb.arn
+  port              = 80
+}

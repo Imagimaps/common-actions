@@ -4,6 +4,9 @@ inputs:
   service_name:
     description: The name of the service
     required: true
+  service_path_identifier:
+    description: The path identifier for the service
+    required: true
   environment:
     description: The environment to deploy the service to
     required: true
@@ -99,7 +102,7 @@ runs:
         aws_account_id: ${{ inputs.aws_account_id }}
         aws_region: ${{ inputs.aws_region }}
 
-    - name: Bootstrap Service ${{ inputs.environment }} Load Balancer Listener & TG
+    - name: Bootstrap Service ${{ inputs.environment }} Load Balancer Target Group
       if: ${{ inputs.destroy == 'false' }}
       uses: Imagimaps/common-actions/.github/actions/deploy-tf@main
       with:
@@ -110,6 +113,7 @@ runs:
         tf_vars: |
           project=imagimaps
           service_name=${{ inputs.service_name }}
+          service_path_identifier=${{ inputs.service_path_identifier }}
         aws_role_arn: ${{ inputs.aws_role_arn }}
         aws_account_id: ${{ inputs.aws_account_id }}
         aws_region: ${{ inputs.aws_region }}
@@ -123,7 +127,7 @@ runs:
         aws_role_arn: ${{ inputs.aws_role_arn }}
         aws_region: ${{ inputs.aws_region }}
 
-    - name: Delete Service ${{ inputs.environment }} Load Balancer Listener & TG
+    - name: Delete Service ${{ inputs.environment }} Load Balancer Target Group
       if: ${{ inputs.destroy != 'false' }}
       uses: Imagimaps/common-actions/.github/actions/deploy-tf@main
       with:
@@ -134,6 +138,7 @@ runs:
         tf_vars: |
           project=imagimaps
           service_name=${{ inputs.service_name }}
+          service_path_identifier=${{ inputs.service_path_identifier }}
         aws_role_arn: ${{ inputs.aws_role_arn }}
         aws_account_id: ${{ inputs.aws_account_id }}
         aws_region: ${{ inputs.aws_region }}

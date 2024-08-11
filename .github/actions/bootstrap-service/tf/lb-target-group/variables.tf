@@ -18,3 +18,8 @@ variable "service_name" {
   type        = string
   description = "Name of the Service"
 }
+
+variable "service_path_identifier" {
+  type        = string
+  description = "Base path of the service"
+}

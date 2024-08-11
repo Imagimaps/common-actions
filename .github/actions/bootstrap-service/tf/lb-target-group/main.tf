@@ -14,3 +14,19 @@ resource "aws_lb_target_group" "service_target_group" {
     path     = "/health"
   }
 }
+
+resource "aws_lb_listener_rule" "api" {
+  listener_arn = aws_lb_listener.api_listener.arn
+  priority     = 100
+
+  action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.service_target_group.arn
+  }
+
+  condition {
+    path_pattern {
+      values = ["/${var.service_path_identifier}/*"]
+    }
+  }
+}
