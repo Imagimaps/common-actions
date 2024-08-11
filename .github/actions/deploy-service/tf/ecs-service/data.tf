@@ -34,11 +34,3 @@ data "aws_security_group" "ecs_fargate_sg" {
 data "aws_db_instance" "shared" {
   db_instance_identifier = "${var.project}-shared"
 }
-
-data "aws_secretsmanager_secret" "database" {
-  name = "${var.project}/${var.service_name}/database"
-}
-
-data "aws_secretsmanager_secret_version" "db_secrets" {
-  secret_id = data.aws_secretsmanager_secret.database.id
-}
