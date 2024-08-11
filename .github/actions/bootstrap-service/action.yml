@@ -58,6 +58,7 @@ runs:
         tf_module_name: ecs-service
         tf_module_dir: ${{ env.ACTION_PATH }}/tf/ecr
         tf_workspace: artifacts
+        # tf_workspace: ${{ inputs.service_name }}
         tf_vars: |
           project=imagimaps
           service_name=${{ inputs.service_name }}
@@ -81,6 +82,7 @@ runs:
         aws_region: ${{ inputs.aws_region }}
 
     - name: Bootstrap Service DB
+      if: ${{ inputs.destroy != 'true' && inputs.soft_destroy != 'true' }}
       uses: Imagimaps/common-actions/.github/actions/psql-client@main
       with:
         service: ${{ inputs.service_name }}
@@ -102,6 +104,7 @@ runs:
         aws_role_arn: ${{ inputs.aws_role_arn }}
         aws_account_id: ${{ inputs.aws_account_id }}
         aws_region: ${{ inputs.aws_region }}
+        destroy: true
 
     - name: Destroy Service ECR
       if: ${{ inputs.destroy == 'true' || inputs.soft_destroy == 'true' }}
@@ -117,3 +120,4 @@ runs:
         aws_role_arn: ${{ inputs.artifacts_aws_role_arn }}
         aws_account_id: ${{ inputs.artifacts_aws_account_id }}
         aws_region: ${{ inputs.aws_region }}
+        destroy: true
