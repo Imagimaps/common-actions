@@ -48,6 +48,7 @@ runs:
         action_start_ts=$(date +%s)
         echo "ts=$action_start_ts" >> $GITHUB_OUTPUT
         echo "ACTION_PATH=$(realpath ${{ github.action_path }})" >> $GITHUB_ENV
+
         valid_values=("true" "soft" "false")
         if [[ ! " ${valid_values[@]} " =~ " ${{ inputs.destroy }} " ]]; then
           echo "Invalid value for 'destroy' input: ${{ inputs.destroy }}. Allowed values are 'true', 'soft', or 'false'."

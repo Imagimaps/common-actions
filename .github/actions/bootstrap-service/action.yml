@@ -27,11 +27,7 @@ inputs:
     required: false
     default: ap-southeast-2
   destroy:
-    description: Whether to destroy the infrastructure
-    required: false
-    default: "false"
-  soft_destroy:
-    description: Whether to destroy the expensive infrastructure
+    description: Whether to destroy the infrastructure. Values are 'true', 'soft' or 'false'
     required: false
     default: "false"
 outputs:
@@ -50,8 +46,15 @@ runs:
         echo "Bootstrapping Service [${{ inputs.service_name }}] in ${{ inputs.environment }} (${{ inputs.environment_short_name }}) environment"
         echo "ACTION_PATH=$(realpath ${{ github.action_path }})" >> $GITHUB_ENV
 
+        valid_values=("true" "soft" "false")
+        if [[ ! " ${valid_values[@]} " =~ " ${{ inputs.destroy }} " ]]; then
+          echo "Invalid value for 'destroy' input: ${{ inputs.destroy }}. Allowed values are 'true', 'soft', or 'false'."
+          exit 1
+        fi
+        echo "Running in destroy mode: ${{ inputs.destroy }}"
+
     - name: Bootstrap Service ECR
-      if: ${{ inputs.destroy != 'true' && inputs.soft_destroy != 'true' }}
+      if: ${{ inputs.destroy == 'false' }}
       uses: Imagimaps/common-actions/.github/actions/deploy-tf@main
       with:
         environment: artifacts
@@ -66,7 +69,7 @@ runs:
         aws_region: ${{ inputs.aws_region }}
 
     - name: Bootstrap Service ${{ inputs.environment }} Secrets
-      if: ${{ inputs.destroy != 'true' && inputs.soft_destroy != 'true' }}
+      if: ${{ inputs.destroy == 'false' }}
       uses: Imagimaps/common-actions/.github/actions/deploy-tf@main
       with:
         environment: ${{ inputs.environment }}
@@ -81,7 +84,7 @@ runs:
         aws_region: ${{ inputs.aws_region }}
 
     - name: Bootstrap Service DB
-      if: ${{ inputs.destroy != 'true' && inputs.soft_destroy != 'true' }}
+      if: ${{ inputs.destroy == 'false' }}
       uses: Imagimaps/common-actions/.github/actions/psql-client@main
       with:
         service: ${{ inputs.service_name }}
@@ -106,7 +109,7 @@ runs:
         destroy: true
 
     - name: Destroy Service ECR
-      if: ${{ inputs.destroy == 'true' || inputs.soft_destroy == 'true' }}
+      if: ${{ inputs.destroy != 'false' }}
       uses: Imagimaps/common-actions/.github/actions/deploy-tf@main
       with:
         environment: artifacts
