@@ -51,7 +51,7 @@ runs:
         environment: ${{ inputs.environment }}
         tf_module_name: ecs-service
         tf_module_dir: ${{ env.ACTION_PATH }}/tf/ecs-service
-        tf_workspace: service/${{ inputs.service_name }}
+        tf_workspace: service.${{ inputs.service_name }}
         tf_vars: |
           project=imagimaps
           service_name=${{ inputs.service_name }}
@@ -68,7 +68,7 @@ runs:
         environment: ${{ inputs.environment }}
         tf_module_name: ecs-service
         tf_module_dir: ${{ env.ACTION_PATH }}/tf/ecs-service
-        tf_workspace: service/${{ inputs.service_name }}
+        tf_workspace: service.${{ inputs.service_name }}
         tf_vars: |
           project=imagimaps
           service_name=${{ inputs.service_name }}
