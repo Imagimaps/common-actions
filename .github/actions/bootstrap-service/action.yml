@@ -83,6 +83,22 @@ runs:
         aws_account_id: ${{ inputs.aws_account_id }}
         aws_region: ${{ inputs.aws_region }}
 
+    - name: Bootstrap Service ${{ inputs.environment }} Log Group
+      if: ${{ inputs.destroy == 'false' }}
+      uses: Imagimaps/common-actions/.github/actions/deploy-tf@main
+      with:
+        environment: ${{ inputs.environment }}
+        tf_module_name: cloudwatch
+        tf_module_dir: ${{ env.ACTION_PATH }}/tf/cloudwatch
+        tf_workspace: service.${{ inputs.service_name }}
+        tf_vars: |
+          project=imagimaps
+          service_name=${{ inputs.service_name }}
+          log_retention=7
+        aws_role_arn: ${{ inputs.aws_role_arn }}
+        aws_account_id: ${{ inputs.aws_account_id }}
+        aws_region: ${{ inputs.aws_region }}
+
     - name: Bootstrap Service DB
       if: ${{ inputs.destroy == 'false' }}
       uses: Imagimaps/common-actions/.github/actions/psql-client@main
@@ -107,6 +123,22 @@ runs:
         aws_account_id: ${{ inputs.aws_account_id }}
         aws_region: ${{ inputs.aws_region }}
         destroy: true
+
+    - name: Delete Service ${{ inputs.environment }} Log Group
+      if: ${{ inputs.destroy == 'true' }}
+      uses: Imagimaps/common-actions/.github/actions/deploy-tf@main
+      with:
+        environment: ${{ inputs.environment }}
+        tf_module_name: cloudwatch
+        tf_module_dir: ${{ env.ACTION_PATH }}/tf/cloudwatch
+        tf_workspace: service.${{ inputs.service_name }}
+        tf_vars: |
+          project=imagimaps
+          service_name=${{ inputs.service_name }}
+          log_retention=7
+        aws_role_arn: ${{ inputs.aws_role_arn }}
+        aws_account_id: ${{ inputs.aws_account_id }}
+        aws_region: ${{ inputs.aws_region }}
 
     - name: Destroy Service ECR
       if: ${{ inputs.destroy != 'false' }}
