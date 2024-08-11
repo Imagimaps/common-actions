@@ -26,6 +26,14 @@ inputs:
     description: The region where the ECR repository is located
     required: false
     default: ap-southeast-2
+  destroy:
+    description: Whether to destroy the infrastructure
+    required: false
+    default: "false"
+  soft_destroy:
+    description: Whether to destroy the expensive infrastructure
+    required: false
+    default: "false"
 outputs:
   action_runtime:
     description: The duration of the action in seconds
@@ -43,6 +51,7 @@ runs:
         echo "ACTION_PATH=$(realpath ${{ github.action_path }})" >> $GITHUB_ENV
 
     - name: Bootstrap Service ECR
+      if: ${{ inputs.destroy != 'true' && inputs.soft_destroy != 'true' }}
       uses: Imagimaps/common-actions/.github/actions/deploy-tf@main
       with:
         environment: artifacts
@@ -57,6 +66,7 @@ runs:
         aws_region: ${{ inputs.aws_region }}
 
     - name: Bootstrap Service ${{ inputs.environment }} Secrets
+      if: ${{ inputs.destroy != 'true' && inputs.soft_destroy != 'true' }}
       uses: Imagimaps/common-actions/.github/actions/deploy-tf@main
       with:
         environment: ${{ inputs.environment }}
@@ -76,4 +86,34 @@ runs:
         service: ${{ inputs.service_name }}
         environment: ${{ inputs.environment }}
         aws_role_arn: ${{ inputs.aws_role_arn }}
+        aws_region: ${{ inputs.aws_region }}
+
+    - name: Delete Service ${{ inputs.environment }} Secrets
+      if: ${{ inputs.destroy == 'true' }}
+      uses: Imagimaps/common-actions/.github/actions/deploy-tf@main
+      with:
+        environment: ${{ inputs.environment }}
+        tf_module_name: secrets
+        tf_module_dir: ${{ env.ACTION_PATH }}/tf/secrets
+        tf_workspace: services
+        tf_vars: |
+          project=imagimaps
+          service_name=${{ inputs.service_name }}
+        aws_role_arn: ${{ inputs.aws_role_arn }}
+        aws_account_id: ${{ inputs.aws_account_id }}
+        aws_region: ${{ inputs.aws_region }}
+
+    - name: Destroy Service ECR
+      if: ${{ inputs.destroy == 'true' || inputs.soft_destroy == 'true' }}
+      uses: Imagimaps/common-actions/.github/actions/deploy-tf@main
+      with:
+        environment: artifacts
+        tf_module_name: ecs-service
+        tf_module_dir: ${{ env.ACTION_PATH }}/tf/ecr
+        tf_workspace: artifacts
+        tf_vars: |
+          project=imagimaps
+          service_name=${{ inputs.service_name }}
+        aws_role_arn: ${{ inputs.artifacts_aws_role_arn }}
+        aws_account_id: ${{ inputs.artifacts_aws_account_id }}
         aws_region: ${{ inputs.aws_region }}

@@ -18,6 +18,10 @@ inputs:
     description: The region where the ECR repository is located
     required: false
     default: ap-southeast-2
+  cleanup_bastion:
+    description: Whether to destroy the bastion
+    required: false
+    default: "false"
   bastion_timeout:
     description: The number of seconds to wait for the bastion to start. Default is 120 seconds (2 minutes)
     required: false
@@ -156,7 +160,7 @@ runs:
         ACTION_PATH: ${{ env.ACTION_PATH }}
 
     - name: Destroy PSQL Bastion
-      if: false
+      if: inputs.cleanup_bastion == 'true'
       shell: bash
       run: |
         echo "Setting number of psql bastions to 0"

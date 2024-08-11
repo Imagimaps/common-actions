@@ -45,7 +45,7 @@ runs:
       run: |
         action_start_ts=$(date +%s)
         echo "ts=$action_start_ts" >> $GITHUB_OUTPUT
-        echo "Running in destroy mode: ${{ inputs.destroy }}"
+        echo "Running deploy-tf in destroy mode: ${{ inputs.destroy }}"
 
     - name: Login to AWS
       id: login-aws
@@ -134,14 +134,38 @@ runs:
         echo $tf_vars
 
     - name: Plan ${{ inputs.tf_workspace }} ${{ inputs.tf_module_name }}
+      if: inputs.destroy == 'false'
       id: plan
       shell: bash
       working-directory: ${{ inputs.tf_module_dir }}
       run: |
+        echo "Planning ${{ inputs.tf_module_name }} in ${{ inputs.tf_workspace }}..."
         set +e
         env | grep TF_VAR
         export TF_VAR_web_identity_token_file=${{ env.AWS_WEB_IDENTITY_TOKEN_FILE }}
-        if [ "${{ inputs.destroy }}" == "true" ]; then
+        terraform plan \
+          -var="aws_region=${{ inputs.aws_region }}" \
+          -var="project=imagimaps" \
+          -var="environment=${{ inputs.environment }}" \
+          ${{ steps.process_inputs.outputs.tf_vars }} \
+          -out=imagimaps.${{ inputs.tf_workspace }}.${{ inputs.tf_module_name }}.tfplan \
+          -input=false \
+          -detailed-exitcode \
+          -no-color
+        plan_exit_code=$?
+        set -e
+        echo "exit_code=$plan_exit_code" >> $GITHUB_OUTPUT
+
+    - name: Plan Destroy ${{ inputs.tf_workspace }} ${{ inputs.tf_module_name }}
+      if: inputs.destroy == 'true' || inputs.destroy == 'soft'
+      id: plan_destroy
+      shell: bash
+      working-directory: ${{ inputs.tf_module_dir }}
+      run: |
+        echo "Planning to Destroy ${{ inputs.tf_module_name }} in ${{ inputs.tf_workspace }}..."
+        set +e
+        env | grep TF_VAR
+        export TF_VAR_web_identity_token_file=${{ env.AWS_WEB_IDENTITY_TOKEN_FILE }}
         terraform plan \
           -destroy \
           -var="aws_region=${{ inputs.aws_region }}" \
@@ -152,23 +176,12 @@ runs:
           -input=false \
           -detailed-exitcode \
           -no-color
-        else
-          terraform plan \
-            -var="aws_region=${{ inputs.aws_region }}" \
-            -var="project=imagimaps" \
-            -var="environment=${{ inputs.environment }}" \
-            ${{ steps.process_inputs.outputs.tf_vars }} \
-            -out=imagimaps.${{ inputs.tf_workspace }}.${{ inputs.tf_module_name }}.tfplan \
-            -input=false \
-            -detailed-exitcode \
-            -no-color
-        fi
         plan_exit_code=$?
         set -e
         echo "exit_code=$plan_exit_code" >> $GITHUB_OUTPUT
 
     - name: Skip if Exists
-      if: steps.plan.outputs.exit_code == 0
+      if: steps.plan.outputs.exit_code == 0 || steps.plan_destroy.outputs.exit_code == 0
       shell: bash
       run: |
         echo "[✅] Plan successful with no diffs"
@@ -176,14 +189,14 @@ runs:
         exit 0
 
     - name: Plan Failed
-      if: steps.plan.outputs.exit_code == 1
+      if: steps.plan.outputs.exit_code == 1 || steps.plan_destroy.outputs.exit_code == 1
       shell: bash
       run: |
         echo "[❌] Error: Terraform plan failed"
         exit 1
 
     - name: Plan Succeeded
-      if: steps.plan.outputs.exit_code == 2
+      if: steps.plan.outputs.exit_code == 2 || steps.plan_destroy.outputs.exit_code == 2
       shell: bash
       working-directory: ${{ inputs.tf_module_dir }}
       run: |
@@ -193,7 +206,7 @@ runs:
         terraform show -no-color imagimaps.${{ inputs.tf_workspace }}.${{ inputs.tf_module_name }}.tfplan >> imagimaps.${{ inputs.tf_workspace }}.${{ inputs.tf_module_name }}.tfplan.txt
 
     - name: Upload TF Plan
-      if: steps.plan.outputs.exit_code == 2
+      if: steps.plan.outputs.exit_code == 2 || steps.plan_destroy.outputs.exit_code == 2
       uses: actions/upload-artifact@v4
       with:
         name: imagimaps.${{ inputs.tf_workspace }}.${{ inputs.tf_module_name }}.tfplan
@@ -204,7 +217,7 @@ runs:
           ${{ inputs.tf_module_dir }}/.terraform.lock.hcl
 
     - name: Apply TF Plan
-      if: steps.plan.outputs.exit_code == 2
+      if: steps.plan.outputs.exit_code == 2 || steps.plan_destroy.outputs.exit_code == 2
       shell: bash
       working-directory: ${{ inputs.tf_module_dir }}
       run: |
