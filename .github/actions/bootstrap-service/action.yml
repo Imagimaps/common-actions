@@ -57,8 +57,7 @@ runs:
         environment: artifacts
         tf_module_name: ecs-service
         tf_module_dir: ${{ env.ACTION_PATH }}/tf/ecr
-        tf_workspace: artifacts
-        # tf_workspace: ${{ inputs.service_name }}
+        tf_workspace: service/${{ inputs.service_name }}
         tf_vars: |
           project=imagimaps
           service_name=${{ inputs.service_name }}
@@ -73,7 +72,7 @@ runs:
         environment: ${{ inputs.environment }}
         tf_module_name: secrets
         tf_module_dir: ${{ env.ACTION_PATH }}/tf/secrets
-        tf_workspace: services
+        tf_workspace: service/${{ inputs.service_name }}
         tf_vars: |
           project=imagimaps
           service_name=${{ inputs.service_name }}
@@ -97,7 +96,7 @@ runs:
         environment: ${{ inputs.environment }}
         tf_module_name: secrets
         tf_module_dir: ${{ env.ACTION_PATH }}/tf/secrets
-        tf_workspace: services
+        tf_workspace: service/${{ inputs.service_name }}
         tf_vars: |
           project=imagimaps
           service_name=${{ inputs.service_name }}
@@ -113,7 +112,7 @@ runs:
         environment: artifacts
         tf_module_name: ecs-service
         tf_module_dir: ${{ env.ACTION_PATH }}/tf/ecr
-        tf_workspace: artifacts
+        tf_workspace: service/${{ inputs.service_name }}
         tf_vars: |
           project=imagimaps
           service_name=${{ inputs.service_name }}
