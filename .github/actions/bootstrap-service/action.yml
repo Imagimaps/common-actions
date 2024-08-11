@@ -99,6 +99,21 @@ runs:
         aws_account_id: ${{ inputs.aws_account_id }}
         aws_region: ${{ inputs.aws_region }}
 
+    - name: Bootstrap Service ${{ inputs.environment }} Load Balancer Listener & TG
+      if: ${{ inputs.destroy == 'false' }}
+      uses: Imagimaps/common-actions/.github/actions/deploy-tf@main
+      with:
+        environment: ${{ inputs.environment }}
+        tf_module_name: lb-listener
+        tf_module_dir: ${{ env.ACTION_PATH }}/tf/lb-listener
+        tf_workspace: service.${{ inputs.service_name }}
+        tf_vars: |
+          project=imagimaps
+          service_name=${{ inputs.service_name }}
+        aws_role_arn: ${{ inputs.aws_role_arn }}
+        aws_account_id: ${{ inputs.aws_account_id }}
+        aws_region: ${{ inputs.aws_region }}
+
     - name: Bootstrap Service DB
       if: ${{ inputs.destroy == 'false' }}
       uses: Imagimaps/common-actions/.github/actions/psql-client@main
@@ -107,6 +122,22 @@ runs:
         environment: ${{ inputs.environment }}
         aws_role_arn: ${{ inputs.aws_role_arn }}
         aws_region: ${{ inputs.aws_region }}
+
+    - name: Delete Service ${{ inputs.environment }} Load Balancer Listener & TG
+      if: ${{ inputs.destroy != 'false' }}
+      uses: Imagimaps/common-actions/.github/actions/deploy-tf@main
+      with:
+        environment: ${{ inputs.environment }}
+        tf_module_name: lb-listener
+        tf_module_dir: ${{ env.ACTION_PATH }}/tf/lb-listener
+        tf_workspace: service.${{ inputs.service_name }}
+        tf_vars: |
+          project=imagimaps
+          service_name=${{ inputs.service_name }}
+        aws_role_arn: ${{ inputs.aws_role_arn }}
+        aws_account_id: ${{ inputs.aws_account_id }}
+        aws_region: ${{ inputs.aws_region }}
+        destroy: true
 
     - name: Delete Service ${{ inputs.environment }} Secrets
       if: ${{ inputs.destroy == 'true' }}

@@ -38,3 +38,7 @@ data "aws_db_instance" "shared" {
 data "aws_cloudwatch_log_group" "service_log_group" {
   name = "${var.project}/${var.service_name}/log-group"
 }
+
+data "aws_lb_target_group" "service_target_group" {
+  name = "${var.project}-${var.service_name}-alb-tg"
+}

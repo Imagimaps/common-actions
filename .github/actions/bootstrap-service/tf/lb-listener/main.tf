@@ -1,3 +1,6 @@
+// TODO: Add listener rule to forward traffic to the target group based on path
+// See https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/lb_listener_rule
+
 resource "aws_lb_target_group" "service_target_group" {
   name        = "${var.project}-${var.service_name}-alb-tg"
   target_type = "ip"
