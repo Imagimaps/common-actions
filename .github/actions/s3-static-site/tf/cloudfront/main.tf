@@ -73,6 +73,7 @@ resource "aws_cloudfront_distribution" "cdn" {
 
   ordered_cache_behavior {
     allowed_methods  = ["HEAD", "DELETE", "POST", "GET", "OPTIONS", "PUT", "PATCH"]
+    cached_methods   = ["GET", "HEAD"]
     path_pattern     = "/api/*"
     target_origin_id = "services-${var.environment}-alb"
 
