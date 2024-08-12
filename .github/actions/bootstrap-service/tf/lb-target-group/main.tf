@@ -11,7 +11,7 @@ resource "aws_lb_target_group" "service_target_group" {
   health_check {
     port     = 80
     protocol = "HTTP"
-    path     = "/health"
+    path     = "/api/${var.service_path_identifier}/health"
   }
 }
 
@@ -25,7 +25,7 @@ resource "aws_lb_listener_rule" "api" {
 
   condition {
     path_pattern {
-      values = ["/${var.service_path_identifier}/*"]
+      values = ["/api/${var.service_path_identifier}/*"]
     }
   }
 }
