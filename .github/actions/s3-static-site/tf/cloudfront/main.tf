@@ -14,7 +14,7 @@ resource "aws_cloudfront_distribution" "cdn" {
     origin_access_control_id = aws_cloudfront_origin_access_control.s3_oac.id
   }
   origin {
-    domain_name = data.aws_lb.services.dns_name
+    domain_name = data.aws_lb.services.dns_name // TODO: set to api-alb.dev.imagimaps.com
     origin_id   = "services-${var.environment}-alb"
 
     custom_origin_config {
