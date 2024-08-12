@@ -66,5 +66,5 @@ variable "container_port" {
 
 variable "desired_count" {
   type    = number
-  default = 2
+  default = 1
 }
