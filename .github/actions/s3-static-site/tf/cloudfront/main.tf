@@ -8,7 +8,7 @@ resource "aws_cloudfront_origin_access_control" "s3_oac" {
 
 resource "aws_cloudfront_distribution" "cdn" {
   origin {
-    domain_name = data.aws_s3_bucket.origin.bucket_domain_name
+    domain_name = data.aws_s3_bucket.origin.bucket_regional_domain_name
     origin_id   = var.fq_domain_name
 
     origin_access_control_id = aws_cloudfront_origin_access_control.s3_oac.id
