@@ -16,6 +16,13 @@ resource "aws_cloudfront_distribution" "cdn" {
   origin {
     domain_name = data.aws_lb.services.dns_name
     origin_id   = "services-${var.environment}-alb"
+
+    custom_origin_config {
+      http_port              = 80
+      https_port             = 443
+      origin_protocol_policy = "https-only"
+      origin_ssl_protocols   = ["TLSv1.2"]
+    }
   }
 
   comment         = "CDN for website ${var.fq_domain_name} in project ${var.project} ${var.environment}"
