@@ -17,3 +17,10 @@ data "aws_acm_certificate" "domain_cert" {
 data "aws_s3_bucket" "origin" {
   bucket = var.fq_domain_name
 }
+
+data "aws_lb" "services" {
+  tags = {
+    Environment = var.environment
+    Project     = var.project
+  }
+}
