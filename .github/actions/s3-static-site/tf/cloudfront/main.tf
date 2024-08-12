@@ -39,6 +39,18 @@ resource "aws_cloudfront_distribution" "cdn" {
     response_page_path    = "/index.html"
     error_caching_min_ttl = 10
   }
+  custom_error_response {
+    error_code            = 503
+    response_code         = 200
+    response_page_path    = "/index.html"
+    error_caching_min_ttl = 10
+  }
+  custom_error_response {
+    error_code            = 504
+    response_code         = 200
+    response_page_path    = "/index.html"
+    error_caching_min_ttl = 10
+  }
 
   default_cache_behavior {
     allowed_methods  = ["HEAD", "DELETE", "POST", "GET", "OPTIONS", "PUT", "PATCH"]
