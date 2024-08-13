@@ -93,6 +93,33 @@ runs:
         aws_account_id: ${{ inputs.aws_account_id }}
         aws_region: ${{ inputs.aws_region }}
 
+    - name: Login to AWS
+      id: login-aws
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        role-to-assume: ${{ inputs.aws_role_arn }}
+        aws-region: ${{ inputs.aws_region }}
+
+    - name: dbg
+      run: |
+        echo "Bucket Name: ${{ steps.domain.outputs.name }}"
+        echo " ---=== Who Am I in AWS? ===---"
+        aws sts get-caller-identity
+        echo " ---=== Im found out ===---"
+        echo " ---=== Listing all buckets ===---"
+        aws s3 ls
+        echo " ---=== End of all buckets ===---"
+        echo " ---=== Listing bucket ${{ steps.domain.outputs.name }} ===---"
+        aws s3 ls s3://${{ steps.domain.outputs.name }}
+        echo " ---=== End of bucket ${{ steps.domain.outputs.name }} ===---"
+        echo " ---=== Listing bucket ${{ steps.domain.outputs.name }} contents ===---"
+        aws s3 ls s3://${{ steps.domain.outputs.name }} --recursive
+        echo " ---=== End of bucket ${{ steps.domain.outputs.name }} contents ===---"
+        echo " ---=== Getting bucket policy ===---"
+        aws s3api get-bucket-policy --bucket ${{ steps.domain.outputs.name }}
+        echo " ---=== End of bucket policy ===---"
+
+
     - name: Request Cert for ${{ inputs.module }} ${{ inputs.environment }}
       if: ${{ inputs.destroy == 'false' }}
       uses: Imagimaps/common-actions/.github/actions/deploy-tf@main
