@@ -103,6 +103,11 @@ resource "aws_cloudfront_distribution" "cdn" {
     }
   }
 
+  logging_config {
+    include_cookies = false
+    bucket          = aws_s3_bucket.cloudfront_logs.bucket_domain_name
+  }
+
   tags = {
     Environment = var.environment
   }
