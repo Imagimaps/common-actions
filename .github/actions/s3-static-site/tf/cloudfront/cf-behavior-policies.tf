@@ -37,7 +37,7 @@ resource "aws_cloudfront_origin_request_policy" "images" {
     }
   }
   headers_config {
-    header_behavior = "allViewerAndWhitelistCloudFront"
+    header_behavior = "allViewer"
     headers {
       items = []
     }
