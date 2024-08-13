@@ -19,7 +19,7 @@ variable "bucket_name" {
 }
 
 variable "read_access_entities" {
-  description = "The arn of entities that can read from the bucket"
+  description = "DEPRICATED - The arn of entities that can read from the bucket"
   type        = list(string)
   default     = []
   validation {
@@ -31,7 +31,7 @@ variable "read_access_entities" {
 }
 
 variable "write_access_entities" {
-  description = "The arn of entities that can write to the bucket"
+  description = "DEPRICATED - The arn of entities that can write to the bucket"
   type        = list(string)
   default     = []
   validation {
