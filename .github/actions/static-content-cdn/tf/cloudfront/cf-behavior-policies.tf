@@ -1,5 +1,5 @@
 resource "aws_cloudfront_cache_policy" "images" {
-  name        = "images-cache-policy"
+  name        = "images-cache-policy-static-content"
   comment     = "Cache policy for images"
   default_ttl = 28800 # 8 hours
   max_ttl     = 86400 # 1 day
@@ -28,7 +28,7 @@ resource "aws_cloudfront_cache_policy" "images" {
 }
 
 resource "aws_cloudfront_origin_request_policy" "images" {
-  name    = "images-origin-request-policy"
+  name    = "images-origin-request-policy-static-content"
   comment = "Origin request policy for images"
   cookies_config {
     cookie_behavior = "all"
