@@ -68,6 +68,10 @@ resource "aws_ecs_task_definition" "service" {
         {
           name  = "SERVICE_LB_LISTENER_DNS_NAME"
           value = "https://api-alb.${var.root_domain}"
+        },
+        {
+          name  = "CDN_DNS_NAME"
+          value = "https://cdn.${var.root_domain}"
         }
       ]
   }])
