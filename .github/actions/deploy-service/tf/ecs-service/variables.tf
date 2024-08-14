@@ -72,3 +72,8 @@ variable "desired_count" {
   type    = number
   default = 1
 }
+
+variable "manage_static_content" {
+  type    = bool
+  default = false
+}

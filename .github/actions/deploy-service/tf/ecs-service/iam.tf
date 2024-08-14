@@ -127,6 +127,21 @@ resource "aws_iam_role_policy" "ecr_task_runtime_inline_policy" {
         Resource = [
           data.aws_db_instance.shared.db_instance_arn,
         ]
+      },
+      {
+        Action = [
+          "s3:GetObject",
+          "s3:ListBucket",
+          "s3:PutObject",
+          "s3:DeleteObject",
+        ]
+        Effect = "Allow"
+        Resource = [
+          "aws:s3:::cdn.dev.imagimaps.com/*",
+          "aws:s3:::cdn.dev.imagimaps.com",
+          "aws:s3:::cdn.imagimaps.com/*",
+          "aws:s3:::cdn.imagimaps.com",
+        ]
       }
     ]
   })
