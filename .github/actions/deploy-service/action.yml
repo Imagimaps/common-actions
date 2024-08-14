@@ -57,6 +57,7 @@ runs:
           service_name=${{ inputs.service_name }}
           environment_short_name=${{ inputs.environment_short_name }}
           artifacts_aws_account_id=${{ inputs.artifacts_aws_account_id }}
+          root_domain=${{ inputs.environment_short_name }}.imagimaps.com
         aws_role_arn: ${{ inputs.aws_role_arn }}
         aws_account_id: ${{ inputs.aws_account_id }}
         aws_region: ${{ inputs.aws_region }}
@@ -74,6 +75,7 @@ runs:
           service_name=${{ inputs.service_name }}
           environment_short_name=${{ inputs.environment_short_name }}
           artifacts_aws_account_id=${{ inputs.artifacts_aws_account_id }}
+          root_domain=${{ inputs.environment_short_name }}.imagimaps.com
         aws_role_arn: ${{ inputs.aws_role_arn }}
         aws_account_id: ${{ inputs.aws_account_id }}
         aws_region: ${{ inputs.aws_region }}

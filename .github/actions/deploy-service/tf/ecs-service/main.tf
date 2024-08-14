@@ -64,6 +64,10 @@ resource "aws_ecs_task_definition" "service" {
         {
           name  = "DB_USER"
           value = local.db_user
+        },
+        {
+          name  = "SERVICE_LB_LISTENER_DNS_NAME"
+          value = "api-alb.${inputs.root_domain}"
         }
       ]
   }])

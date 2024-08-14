@@ -24,6 +24,10 @@ variable "environment_short_name" {
   type = string
 }
 
+variable "root_domain" {
+  type = string
+}
+
 variable "service_name" {
   type    = string
   default = "imagimaps-bff"
