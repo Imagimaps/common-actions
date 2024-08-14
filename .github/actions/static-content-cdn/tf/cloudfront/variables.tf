@@ -13,7 +13,12 @@ variable "aws_region" {
   type        = string
 }
 
-variable "bucket_name" {
-  description = "The name of the S3 bucket"
+variable "root_domain" {
+  description = "The root domain name"
+  type        = string
+}
+
+variable "fq_domain_name" {
+  description = "The fully qualified domain name"
   type        = string
 }

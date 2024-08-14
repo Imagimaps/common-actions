@@ -1,0 +1,155 @@
+name: Bootstrap Public Bucket
+description: Bootstrap an S3 bucket with Cloudfront for direct access to public assets
+inputs:
+  domain:
+    description: The domain name of the project
+    required: false
+    default: imagimaps.com
+  environment:
+    description: The environment which this content is to be based in
+    required: true
+  environment_short_name:
+    description: The short name of the environment
+    required: true
+  sub_environment:
+    description: The sub-environment to deploy the service to
+    required: false
+  aws_role_arn:
+    description: The ARN of the role which can create and manage S3 buckets
+    required: true
+  aws_account_id:
+    description: The AWS account ID where the S3 Bucket and CloudFront distribution are to be created
+    required: true
+  aws_region:
+    description: AWS Region where the S3 bucket is to be created
+    required: false
+    default: ap-southeast-2
+  destroy:
+    description: Whether to destroy the infrastructure. Values are 'true', 'soft' or 'false'
+    required: false
+    default: "false"
+  soft_destroy:
+    description: Whether to destroy the bucket and CloudFront distribution
+    required: false
+    default: "false"
+outputs:
+  bucket-name:
+    description: The name of the S3 bucket created
+    value: ${{ steps.bucket-data.outputs.name }}
+
+runs:
+  using: "composite"
+
+  steps:
+    - name: Initialise
+      id: start
+      shell: bash
+      run: |
+        action_start_ts=$(date +%s)
+        echo "ts=$action_start_ts" >> $GITHUB_OUTPUT
+        echo "ACTION_PATH=$(realpath ${{ github.action_path }})" >> $GITHUB_ENV
+
+        valid_values=("true" "soft" "false")
+        if [[ ! " ${valid_values[@]} " =~ " ${{ inputs.destroy }} " ]]; then
+          echo "Invalid value for 'destroy' input: ${{ inputs.destroy }}. Allowed values are 'true', 'soft', or 'false'."
+          exit 1
+        fi
+        echo "Running in destroy mode: ${{ inputs.destroy }}"
+
+    - name: Assemble Website Domain
+      id: domain
+      shell: bash
+      run: |
+        domain_name="cdn.${{ inputs.environment_short_name }}.${{ inputs.domain }}"
+        if [ -n "${{ inputs.sub_environment }}" ]; then
+          domain_name="${domain_name}.${inputs.sub_environment}"
+        fi
+        if [[ ${#domain_name} -lt 3 || ${#domain_name} -gt 63 ]]; then
+          echo "Bucket name must be between 3 and 63 characters long."
+          exit 1
+        fi
+        if [[ ! "$domain_name" =~ ^[a-z0-9]([a-z0-9.-]*[a-z0-9])?$ ]]; then
+          echo "Bucket name can only contain lowercase letters, numbers, dots (.), and hyphens (-), and must start and end with a letter or number."
+          exit 1
+        fi
+        if [[ "$domain_name" =~ \.\. ]]; then
+          echo "Bucket name must not contain two adjacent periods."
+          exit 1
+        fi
+        echo "S3 Bucket Name: $domain_name" >> $GITHUB_STEP_SUMMARY
+        echo "name=$domain_name" >> $GITHUB_OUTPUT
+
+    - name: Bootstrap S3 Static Site Bucket for ${{ inputs.module }} ${{ inputs.environment }}
+      if: ${{ inputs.destroy == 'false' }}
+      uses: Imagimaps/common-actions/.github/actions/deploy-tf@main
+      with:
+        environment: ${{ inputs.environment }}
+        tf_module_name: s3-static-content
+        tf_module_dir: ${{ env.ACTION_PATH }}/tf/s3
+        tf_workspace: ${{ steps.domain.outputs.name }}
+        tf_vars: |
+          bucket_name=${{ steps.domain.outputs.name }}
+        aws_role_arn: ${{ inputs.aws_role_arn }}
+        aws_account_id: ${{ inputs.aws_account_id }}
+        aws_region: ${{ inputs.aws_region }}
+
+    - name: Request Cert for ${{ inputs.module }} ${{ inputs.environment }}
+      if: ${{ inputs.destroy == 'false' }}
+      uses: Imagimaps/common-actions/.github/actions/deploy-tf@main
+      with:
+        environment: ${{ inputs.environment }}
+        tf_module_name: cert
+        tf_module_dir: ${{ env.ACTION_PATH }}/tf/cert
+        tf_workspace: ${{ steps.domain.outputs.name }}
+        tf_vars: |
+          root_domain=${{ steps.domain.outputs.name }}
+          requested_fq_domain=${{ steps.domain.outputs.name }}
+        aws_role_arn: ${{ inputs.aws_role_arn }}
+        aws_account_id: ${{ inputs.aws_account_id }}
+        aws_region: ${{ inputs.aws_region }}
+
+    - name: Setup CDN for ${{ inputs.module }} ${{ inputs.environment }}
+      if: ${{ inputs.destroy == 'false' }}
+      uses: Imagimaps/common-actions/.github/actions/deploy-tf@main
+      with:
+        environment: ${{ inputs.environment }}
+        tf_module_name: cf-static-content
+        tf_module_dir: ${{ env.ACTION_PATH }}/tf/cloudfront
+        tf_workspace: ${{ steps.domain.outputs.name }}
+        tf_vars: |
+          root_domain=${{ steps.domain.outputs.name }}
+          fq_domain_name=${{ steps.domain.outputs.name }}
+        aws_role_arn: ${{ inputs.aws_role_arn }}
+        aws_account_id: ${{ inputs.aws_account_id }}
+        aws_region: ${{ inputs.aws_region }}
+
+    - name: Destroy CDN for ${{ inputs.module }} ${{ inputs.environment }}
+      if: ${{ inputs.destroy != 'false' }}
+      uses: Imagimaps/common-actions/.github/actions/deploy-tf@main
+      with:
+        environment: ${{ inputs.environment }}
+        tf_module_name: cf-static-content
+        tf_module_dir: ${{ env.ACTION_PATH }}/tf/cloudfront
+        tf_workspace: ${{ steps.domain.outputs.name }}
+        tf_vars: |
+          root_domain=${{ steps.domain.outputs.name }}
+          fq_domain_name=${{ steps.domain.outputs.name }}
+        aws_role_arn: ${{ inputs.aws_role_arn }}
+        aws_account_id: ${{ inputs.aws_account_id }}
+        aws_region: ${{ inputs.aws_region }}
+        destroy: ${{ inputs.destroy }}
+
+    - name: Destroy S3 Static Site Bucket for ${{ inputs.module }} ${{ inputs.environment }}
+      if: ${{ inputs.destroy != 'false' }}
+      uses: Imagimaps/common-actions/.github/actions/deploy-tf@main
+      with:
+        environment: ${{ inputs.environment }}
+        tf_module_name: s3-static-content
+        tf_module_dir: ${{ env.ACTION_PATH }}/tf/s3
+        tf_workspace: ${{ steps.domain.outputs.name }}
+        tf_vars: |
+          bucket_name=${{ steps.domain.outputs.name }}
+        aws_role_arn: ${{ inputs.aws_role_arn }}
+        aws_account_id: ${{ inputs.aws_account_id }}
+        aws_region: ${{ inputs.aws_region }}
+        destroy: ${{ inputs.destroy }}
