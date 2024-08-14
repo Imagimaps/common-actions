@@ -67,7 +67,7 @@ resource "aws_ecs_task_definition" "service" {
         },
         {
           name  = "SERVICE_LB_LISTENER_DNS_NAME"
-          value = "api-alb.${inputs.root_domain}"
+          value = "api-alb.${var.root_domain}"
         }
       ]
   }])
