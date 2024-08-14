@@ -137,10 +137,10 @@ resource "aws_iam_role_policy" "ecr_task_runtime_inline_policy" {
         ]
         Effect = "Allow"
         Resource = [
-          "aws:s3:::cdn.dev.imagimaps.com/*",
-          "aws:s3:::cdn.dev.imagimaps.com",
-          "aws:s3:::cdn.imagimaps.com/*",
-          "aws:s3:::cdn.imagimaps.com",
+          "arn:aws:s3:::cdn.dev.imagimaps.com/*",
+          "arn:aws:s3:::cdn.dev.imagimaps.com",
+          "arn:aws:s3:::cdn.imagimaps.com/*",
+          "arn:aws:s3:::cdn.imagimaps.com",
         ]
       }
     ]
