@@ -1,0 +1,98 @@
+name: Service CI (Build, Test & Push)
+
+on:
+  workflow_call:
+    inputs:
+      environment:
+        required: true
+        type: string
+      service_name:
+        required: true
+        type: string
+      target-platform:
+        description: Build Container Target. Valid values are linux/amd64, linux/arm64
+        required: false
+        type: string
+        default: linux/arm64
+    secrets:
+      AWS_ROLE_ARN:
+        required: true
+
+jobs:
+  deploy-development:
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Cache
+        uses: actions/cache@v4
+        id: cache
+        with:
+          path: |
+            pnpm
+          key: pnpm-cache-${{ hashFiles('pnpm-lock.yaml') }}
+          restore-keys: |
+            pnpm-cache-
+
+      - name: Inject cache into Docker
+        uses: reproducible-containers/buildkit-cache-dance@v3
+        with:
+          cache-map: |
+            {
+              "pnpm": "/pnpm"
+            }
+          skip-extraction: ${{ steps.cache.outputs.cache-hit }}
+
+      - name: Build Container
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          target: build
+          tags: imagimaps/${{ inputs.service_name }}:build
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          platforms: ${{ inputs.target-platform }}
+
+      - name: Test in Container
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          target: test
+          tags: imagimaps/${{ inputs.service_name }}:test
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          platforms: ${{ inputs.target-platform }}
+
+      - name: Login to AWS
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ vars.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Finalise Container and Push
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          target: prod
+          push: true
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          platforms: ${{ inputs.target-platform }}
+          tags: ${{ env.ECR_REGISTRY }}/imagimaps/service/${{ inputs.service_name }}:latest
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
