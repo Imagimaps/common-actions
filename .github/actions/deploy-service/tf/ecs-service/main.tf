@@ -28,6 +28,7 @@ resource "aws_ecs_task_definition" "service" {
           containerPort = var.container_port
         }
       ]
+      enable_cloudwatch_logging = true
       logConfiguration = {
         logDriver = "awslogs"
         options = {
@@ -97,6 +98,9 @@ resource "aws_ecs_service" "service" {
   }
 
   force_new_deployment = true
+  triggers = {
+    redeployment = plantimestamp()
+  }
 
   lifecycle {
     ignore_changes = [desired_count]
