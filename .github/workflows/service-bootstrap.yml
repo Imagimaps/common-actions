@@ -1,0 +1,28 @@
+name: Service CI (Build, Test & Push)
+
+on:
+  workflow_call:
+    inputs:
+      environment:
+        required: true
+        type: string
+      service_name:
+        required: true
+        type: string
+      target-platform:
+        description: Build Container Target. Valid values are linux/amd64, linux/arm64
+        required: false
+        type: string
+        default: linux/arm64
+    secrets:
+      AWS_ROLE_ARN:
+        required: true
+
+jobs:
+  deploy-development:
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
