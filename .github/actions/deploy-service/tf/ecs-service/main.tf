@@ -71,7 +71,7 @@ resource "aws_ecs_task_definition" "service" {
           value = data.aws_elasticache_cluster.shared.cache_nodes.0.address
         },
         {
-          name  = "REDIS_USER"
+          name  = "REDIS_USERNAME"
           value = data.aws_elasticache_user.platform_redis.user_name
         },
         {
