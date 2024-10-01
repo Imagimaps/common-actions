@@ -67,7 +67,7 @@ resource "aws_ecs_task_definition" "service" {
           value = local.db_user
         },
         {
-          name  = "REDIS_HOST"
+          name  = "REDIS_URL"
           value = data.aws_elasticache_cluster.shared.cache_nodes.0.address
         },
         {
