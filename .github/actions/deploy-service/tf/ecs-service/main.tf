@@ -67,6 +67,18 @@ resource "aws_ecs_task_definition" "service" {
           value = local.db_user
         },
         {
+          name  = "REDIS_HOST"
+          value = data.aws_elasticache_cluster.shared.cache_nodes.0.address
+        },
+        {
+          name  = "REDIS_USER"
+          value = data.aws_elasticache_user.platform_redis.user_name
+        },
+        {
+          name  = "REDIS_PASSWORD"
+          value = data.aws_secretsmanager_secret_version.platform_redis_user_password.secret_string
+        },
+        {
           name  = "SERVICE_LB_LISTENER_DNS_NAME"
           value = "https://api-alb.${var.root_domain}"
         },
