@@ -85,6 +85,10 @@ resource "aws_ecs_task_definition" "service" {
         {
           name  = "CDN_DNS_NAME"
           value = "https://cdn.${var.root_domain}"
+        },
+        {
+          name  = "LOG_LEVEL"
+          value = "info"
         }
       ]
   }])
