@@ -68,7 +68,7 @@ resource "aws_ecs_task_definition" "service" {
         },
         {
           name  = "REDIS_URL"
-          value = "redis://${data.aws_elasticache_cluster.shared.cache_nodes.0.address}:${data.aws_elasticache_cluster.shared.cache_nodes.0.port}"
+          value = "rediss://${data.aws_elasticache_cluster.shared.cache_nodes.0.address}:${data.aws_elasticache_cluster.shared.cache_nodes.0.port}"
         },
         {
           name  = "REDIS_USERNAME"
