@@ -73,7 +73,7 @@ resource "aws_ecs_task_definition" "service" {
         {
           name  = "REDIS_USE_TLS"
           value = "false"
-        }
+        },
         {
           name  = "REDIS_USERNAME"
           value = data.aws_elasticache_user.platform_redis.user_name
