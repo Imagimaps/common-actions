@@ -67,8 +67,12 @@ resource "aws_ecs_task_definition" "service" {
           value = local.db_user
         },
         {
+          name = "REDIS_HOST"
+          value = data.aws_elasticache_cluster.shared.cache_nodes.0.address
+        },
+        {
           name  = "REDIS_URL"
-          value = "rediss://${data.aws_elasticache_cluster.shared.cache_nodes.0.address}:${data.aws_elasticache_cluster.shared.cache_nodes.0.port}"
+          value = "redis://${data.aws_elasticache_cluster.shared.cache_nodes.0.address}:${data.aws_elasticache_cluster.shared.cache_nodes.0.port}"
         },
         {
           name  = "REDIS_USE_TLS"
