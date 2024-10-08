@@ -86,6 +86,15 @@ runs:
           fi
         done
 
+        TASK_ID=$(aws ecs list-tasks \
+          --cluster "$ECS_CLUSTER_NAME" \
+          --service-name "$ECS_SERVICE_NAME" \
+          --desired-status RUNNING \
+          --query "taskArns[0]" \
+          --output text | cut -d'/' -f3)
+        echo "Bastion Task ID: $TASK_ID"
+        echo "task_id=$TASK_ID" >> $GITHUB_OUTPUT
+
         while true; do
           CURRENT_TIME=$(date +%s)
           ELAPSED_TIME=$(($CURRENT_TIME - $START_TIME))
@@ -117,15 +126,6 @@ runs:
           echo "enableExecuteCommand is not true for the service."
           exit 1
         fi
-
-        TASK_ID=$(aws ecs list-tasks \
-          --cluster "$ECS_CLUSTER_NAME" \
-          --service-name "$ECS_SERVICE_NAME" \
-          --desired-status RUNNING \
-          --query "taskArns[0]" \
-          --output text | cut -d'/' -f3)
-        echo "Bastion Task ID: $TASK_ID"
-        echo "task_id=$TASK_ID" >> $GITHUB_OUTPUT
 
         CONTAINER_NAME=$(aws ecs describe-tasks \
           --cluster "$ECS_CLUSTER_NAME" \
