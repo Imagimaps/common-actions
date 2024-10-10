@@ -191,12 +191,8 @@ runs:
           exit 1
         fi
 
-        pg_user=$(echo $rds_master_user_secret | jq -r '.username')
-        pg_pass=$(echo $rds_master_user_secret | jq -r '.password')
-        PG_VARS="PGPASSWORD=\"$pg_pass\" PGUSER=\"$pg_user\" PGHOST=\"$rds_host\" PGPORT=\"$rds_port\" PGDATABASE=\"postgres\""
-        echo "PGPASSWORD=*** PGUSER=$pg_user PGHOST=$rds_host PGPORT=$rds_port PGDATABASE=postgres"
-        last_4=$(echo $pg_pass | tail -c 5)
-        echo "Last 4 digits of the RDS master user secret: $last_4"
+        PG_VARS="PGHOST=\"$rds_host\" PGPORT=\"$rds_port\" PGDATABASE=\"postgres\""
+        echo "PGHOST=$rds_host PGPORT=$rds_port PGDATABASE=postgres"
         aws ecs execute-command \
           --cluster "$CLUSTER_NAME" \
           --task "$TASK_ID" \
