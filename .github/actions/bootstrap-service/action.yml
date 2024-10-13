@@ -102,6 +102,21 @@ runs:
         aws_account_id: ${{ inputs.aws_account_id }}
         aws_region: ${{ inputs.aws_region }}
 
+    - name: Bootstrap Service ${{ inputs.environment }} Configs
+      if: ${{ inputs.destroy == 'false' }}
+      uses: Imagimaps/common-actions/.github/actions/deploy-tf@main
+      with:
+        environment: ${{ inputs.environment }}
+        tf_module_name: configs
+        tf_module_dir: ${{ env.ACTION_PATH }}/tf/service-configs
+        tf_workspace: service.${{ inputs.service_name }}
+        tf_vars: |
+          project=imagimaps
+          service_name=${{ inputs.service_name }}
+        aws_role_arn: ${{ inputs.aws_role_arn }}
+        aws_account_id: ${{ inputs.aws_account_id }}
+        aws_region: ${{ inputs.aws_region }}
+
     - name: Bootstrap Service ${{ inputs.environment }} Load Balancer Target Group
       if: ${{ inputs.destroy == 'false' }}
       uses: Imagimaps/common-actions/.github/actions/deploy-tf@main
@@ -144,6 +159,22 @@ runs:
         aws_region: ${{ inputs.aws_region }}
         destroy: true
 
+    - name: Delete Service ${{ inputs.environment }} Configs
+      if: ${{ inputs.destroy == 'true' }}
+      uses: Imagimaps/common-actions/.github/actions/deploy-tf@main
+      with:
+        environment: ${{ inputs.environment }}
+        tf_module_name: configs
+        tf_module_dir: ${{ env.ACTION_PATH }}/tf/service-configs
+        tf_workspace: service.${{ inputs.service_name }}
+        tf_vars: |
+          project=imagimaps
+          service_name=${{ inputs.service_name }}
+        aws_role_arn: ${{ inputs.aws_role_arn }}
+        aws_account_id: ${{ inputs.aws_account_id }}
+        aws_region: ${{ inputs.aws_region }}
+        destroy: true
+
     - name: Delete Service ${{ inputs.environment }} Secrets
       if: ${{ inputs.destroy == 'true' }}
       uses: Imagimaps/common-actions/.github/actions/deploy-tf@main
@@ -175,6 +206,7 @@ runs:
         aws_role_arn: ${{ inputs.aws_role_arn }}
         aws_account_id: ${{ inputs.aws_account_id }}
         aws_region: ${{ inputs.aws_region }}
+        destroy: true
 
     - name: Destroy Service ECR
       if: ${{ inputs.destroy != 'false' }}
