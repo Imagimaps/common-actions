@@ -142,6 +142,20 @@ resource "aws_iam_role_policy" "ecr_task_runtime_inline_policy" {
           "arn:aws:s3:::cdn.imagimaps.com/*",
           "arn:aws:s3:::cdn.imagimaps.com",
         ]
+      },
+      {
+        Action = [
+          "ssm:GetParameter",
+        ]
+        Effect = "Allow"
+        Resource = [
+          "arn:aws:ssm:${local.aws_region}:${local.aws_account_id}:parameter/*",
+        ]
+        Condition = {
+          StringEquals = {
+            "ssm:resourceTag/Service" = "${var.service_name}"
+          }
+        }
       }
     ]
   })
