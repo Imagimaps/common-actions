@@ -39,6 +39,10 @@ resource "aws_ecs_task_definition" "service" {
       }
       environment = [
         {
+          name  = "NODE_ENV"
+          value = "production"
+        },
+        {
           name  = "PORT"
           value = "${tostring(var.container_port)}"
         },
