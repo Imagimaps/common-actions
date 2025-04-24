@@ -51,13 +51,17 @@ runs:
       id: set-env
       shell: bash
       run: |
+        env_short_name=${{ inputs.environment }}
         if [[ "${{ inputs.environment }}" == "development" ]]; then
-          echo "env_short_name=dev" >> $GITHUB_OUTPUT
+          env_short_name="dev"
         elif [[ "${{ inputs.environment }}" == "production" ]]; then
-          echo "env_short_name=prod" >> $GITHUB_OUTPUT
+          env_short_name="prod"
         else
           echo "env_short_name=${{ inputs.environment }}" >> $GITHUB_OUTPUT
         fi
+        echo "ENV_SHORT_NAME=$env_short_name" >> $GITHUB_ENV
+        echo "ENV_SHORT_NAME=$env_short_name" >> $GITHUB_OUTPUT
+        echo "Environment short name set to: $env_short_name"
 
     - name: Login to AWS
       id: login-aws
@@ -227,14 +231,12 @@ runs:
       if: steps.plan.outputs.exit_code == 2 || steps.plan_destroy.outputs.exit_code == 2
       uses: actions/upload-artifact@v4
       with:
-        name: imagimaps.${{ inputs.tf_workspace }}.${{ inputs.tf_module_name }}.tfplan
+        name: imagimaps.${{ inputs.tf_workspace }}.${{ inputs.tf_module_name }}.${{ env.ENV_SHORT_NAME }}.tfplan
         retention-days: 7
         path: |
-          ${{ inputs.tf_module_dir }}/imagimaps.${{ inputs.tf_workspace }}.${{ inputs.tf_module_name }}.$ENV_SHORT_NAME.tfplan
-          ${{ inputs.tf_module_dir }}/imagimaps.${{ inputs.tf_workspace }}.${{ inputs.tf_module_name }}.$ENV_SHORT_NAME.tfplan.txt
+          ${{ inputs.tf_module_dir }}/imagimaps.${{ inputs.tf_workspace }}.${{ inputs.tf_module_name }}.*.tfplan
+          ${{ inputs.tf_module_dir }}/imagimaps.${{ inputs.tf_workspace }}.${{ inputs.tf_module_name }}.*.tfplan.txt
           ${{ inputs.tf_module_dir }}/.terraform.lock.hcl
-      env:
-        ENV_SHORT_NAME: ${{ steps.set-env.outputs.env_short_name }}
 
     - name: Apply TF Plan
       if: steps.plan.outputs.exit_code == 2 || steps.plan_destroy.outputs.exit_code == 2
