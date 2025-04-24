@@ -47,6 +47,18 @@ runs:
         echo "ts=$action_start_ts" >> $GITHUB_OUTPUT
         echo "Running deploy-tf in destroy mode: ${{ inputs.destroy }}"
 
+    - name: Set environment name
+      id: set-env
+      shell: bash
+      run: |
+        if [[ "${{ inputs.environment }}" == "development" ]]; then
+          echo "env_short_name=dev" >> $GITHUB_OUTPUT
+        elif [[ "${{ inputs.environment }}" == "production" ]]; then
+          echo "env_short_name=prod" >> $GITHUB_OUTPUT
+        else
+          echo "env_short_name=${{ inputs.environment }}" >> $GITHUB_OUTPUT
+        fi
+
     - name: Login to AWS
       id: login-aws
       uses: aws-actions/configure-aws-credentials@v4
@@ -148,13 +160,15 @@ runs:
           -var="project=imagimaps" \
           -var="environment=${{ inputs.environment }}" \
           ${{ steps.process_inputs.outputs.tf_vars }} \
-          -out=imagimaps.${{ inputs.tf_workspace }}.${{ inputs.tf_module_name }}.tfplan \
+          -out=imagimaps.${{ inputs.tf_workspace }}.${{ inputs.tf_module_name }}.$ENV_SHORT_NAME.tfplan \
           -input=false \
           -detailed-exitcode \
           -no-color
         plan_exit_code=$?
         set -e
         echo "exit_code=$plan_exit_code" >> $GITHUB_OUTPUT
+      env:
+        ENV_SHORT_NAME: ${{ steps.set-env.outputs.env_short_name }}
 
     - name: Plan Destroy ${{ inputs.tf_workspace }} ${{ inputs.tf_module_name }}
       if: inputs.destroy == 'true' || inputs.destroy == 'soft'
@@ -172,13 +186,15 @@ runs:
           -var="project=imagimaps" \
           -var="environment=${{ inputs.environment }}" \
           ${{ steps.process_inputs.outputs.tf_vars }} \
-          -out=imagimaps.${{ inputs.tf_workspace }}.${{ inputs.tf_module_name }}.tfplan \
+          -out=imagimaps.${{ inputs.tf_workspace }}.${{ inputs.tf_module_name }}.$ENV_SHORT_NAME.tfplan \
           -input=false \
           -detailed-exitcode \
           -no-color
         plan_exit_code=$?
         set -e
         echo "exit_code=$plan_exit_code" >> $GITHUB_OUTPUT
+      env:
+        ENV_SHORT_NAME: ${{ steps.set-env.outputs.env_short_name }}
 
     - name: Skip if Exists
       if: steps.plan.outputs.exit_code == 0 || steps.plan_destroy.outputs.exit_code == 0
@@ -203,7 +219,9 @@ runs:
         echo "[✅] Plan successful, changes detected..."
         echo "[▶️] Proceeding with apply..."
 
-        terraform show -no-color imagimaps.${{ inputs.tf_workspace }}.${{ inputs.tf_module_name }}.tfplan >> imagimaps.${{ inputs.tf_workspace }}.${{ inputs.tf_module_name }}.tfplan.txt
+        terraform show -no-color imagimaps.${{ inputs.tf_workspace }}.${{ inputs.tf_module_name }}.$ENV_SHORT_NAME.tfplan >> imagimaps.${{ inputs.tf_workspace }}.${{ inputs.tf_module_name }}.$ENV_SHORT_NAME.tfplan.txt
+      env:
+        ENV_SHORT_NAME: ${{ steps.set-env.outputs.env_short_name }}
 
     - name: Upload TF Plan
       if: steps.plan.outputs.exit_code == 2 || steps.plan_destroy.outputs.exit_code == 2
@@ -212,16 +230,20 @@ runs:
         name: imagimaps.${{ inputs.tf_workspace }}.${{ inputs.tf_module_name }}.tfplan
         retention-days: 7
         path: |
-          ${{ inputs.tf_module_dir }}/imagimaps.${{ inputs.tf_workspace }}.${{ inputs.tf_module_name }}.tfplan
-          ${{ inputs.tf_module_dir }}/imagimaps.${{ inputs.tf_workspace }}.${{ inputs.tf_module_name }}.tfplan.txt
+          ${{ inputs.tf_module_dir }}/imagimaps.${{ inputs.tf_workspace }}.${{ inputs.tf_module_name }}.$ENV_SHORT_NAME.tfplan
+          ${{ inputs.tf_module_dir }}/imagimaps.${{ inputs.tf_workspace }}.${{ inputs.tf_module_name }}.$ENV_SHORT_NAME.tfplan.txt
           ${{ inputs.tf_module_dir }}/.terraform.lock.hcl
+      env:
+        ENV_SHORT_NAME: ${{ steps.set-env.outputs.env_short_name }}
 
     - name: Apply TF Plan
       if: steps.plan.outputs.exit_code == 2 || steps.plan_destroy.outputs.exit_code == 2
       shell: bash
       working-directory: ${{ inputs.tf_module_dir }}
       run: |
-        terraform apply -auto-approve imagimaps.${{ inputs.tf_workspace }}.${{ inputs.tf_module_name }}.tfplan
+        terraform apply -auto-approve imagimaps.${{ inputs.tf_workspace }}.${{ inputs.tf_module_name }}.$ENV_SHORT_NAME.tfplan
+      env:
+        ENV_SHORT_NAME: ${{ steps.set-env.outputs.env_short_name }}
 
     - name: Complete
       if: always()
