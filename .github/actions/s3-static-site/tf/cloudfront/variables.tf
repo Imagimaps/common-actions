@@ -22,3 +22,5 @@ variable "fq_domain_name" {
   description = "The fully qualified domain name"
   type        = string
 }
+
+#TODO: Add extra subdomains

@@ -56,8 +56,8 @@ runs:
           env_short_name="dev"
         elif [[ "${{ inputs.environment }}" == "production" ]]; then
           env_short_name="prod"
-        else
-          echo "env_short_name=${{ inputs.environment }}" >> $GITHUB_OUTPUT
+        elif [[ "${{ inputs.environment }}" == "staging" ]]; then
+          env_short_name="stg"
         fi
         echo "ENV_SHORT_NAME=$env_short_name" >> $GITHUB_ENV
         echo "ENV_SHORT_NAME=$env_short_name" >> $GITHUB_OUTPUT
@@ -88,9 +88,11 @@ runs:
         terraform init \
           -backend-config="region=${{ inputs.aws_region }}" \
           -backend-config="bucket=tf-state-${{ inputs.aws_region }}-${{ inputs.aws_account_id }}" \
-          -backend-config="key=${{ inputs.tf_module_name }}/terraform.tfstate" \
+          -backend-config="key=${{ inputs.tf_module_name }}/$ENV_SHORT_NAME/terraform.tfstate" \
           -backend-config="dynamodb_table=tf-state-lock-${{ inputs.aws_region }}-${{ inputs.aws_account_id }}"
         terraform workspace select -or-create ${{ inputs.tf_workspace }}
+      env:
+        ENV_SHORT_NAME: ${{ steps.set-env.outputs.ENV_SHORT_NAME }}
 
     - name: Find imaginarium.yml
       id: imaginarium
@@ -225,7 +227,7 @@ runs:
 
         terraform show -no-color imagimaps.${{ inputs.tf_workspace }}.${{ inputs.tf_module_name }}.$ENV_SHORT_NAME.tfplan >> imagimaps.${{ inputs.tf_workspace }}.${{ inputs.tf_module_name }}.$ENV_SHORT_NAME.tfplan.txt
       env:
-        ENV_SHORT_NAME: ${{ steps.set-env.outputs.env_short_name }}
+        ENV_SHORT_NAME: ${{ steps.set-env.outputs.ENV_SHORT_NAME }}
 
     - name: Upload TF Plan
       if: steps.plan.outputs.exit_code == 2 || steps.plan_destroy.outputs.exit_code == 2
@@ -245,7 +247,7 @@ runs:
       run: |
         terraform apply -auto-approve imagimaps.${{ inputs.tf_workspace }}.${{ inputs.tf_module_name }}.$ENV_SHORT_NAME.tfplan
       env:
-        ENV_SHORT_NAME: ${{ steps.set-env.outputs.env_short_name }}
+        ENV_SHORT_NAME: ${{ steps.set-env.outputs.ENV_SHORT_NAME }}
 
     - name: Complete
       if: always()

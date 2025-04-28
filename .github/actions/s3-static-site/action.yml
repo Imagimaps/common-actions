@@ -65,7 +65,7 @@ runs:
         else
           domain_name="${{ inputs.environment_short_name }}.${{ inputs.domain }}"
           if [ -n "${{ inputs.sub_environment }}" ]; then
-            domain_name="${domain_name}.${inputs.sub_environment}"
+            domain_name="${inputs.sub_environment}.${domain_name}"
           fi
         fi
         if [[ ${#domain_name} -lt 3 || ${#domain_name} -gt 63 ]]; then
