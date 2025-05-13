@@ -43,6 +43,16 @@ runs:
         echo "Deloying Service [${{ inputs.service_name }}]"
         echo "ACTION_PATH=$(realpath ${{ github.action_path }})" >> $GITHUB_ENV
         echo "Running in destroy mode: ${{ inputs.destroy }}"
+        
+    - name: Set Domain Name
+      id: domain
+      shell: bash
+      run: |
+        if [[ "${{ inputs.environment_short_name }}" == "prod" || "${{ inputs.environment_short_name }}" == "prd" || "${{ inputs.environment }}" == "production" ]]; then
+          echo "domain=imagimaps.com" >> $GITHUB_OUTPUT
+        else
+          echo "domain=${{ inputs.environment_short_name }}.imagimaps.com" >> $GITHUB_OUTPUT
+        fi
 
     - name: Create Fargate Service
       if: ${{ inputs.destroy == 'false' }}
@@ -57,7 +67,7 @@ runs:
           service_name=${{ inputs.service_name }}
           environment_short_name=${{ inputs.environment_short_name }}
           artifacts_aws_account_id=${{ inputs.artifacts_aws_account_id }}
-          root_domain=${{ (inputs.environment_short_name == 'prod' || inputs.environment_short_name == 'prd' || inputs.environment == 'production') ? 'imagimaps.com' : format('%s.imagimaps.com', inputs.environment_short_name) }}
+          root_domain=${{ steps.domain.outputs.domain }}
         aws_role_arn: ${{ inputs.aws_role_arn }}
         aws_account_id: ${{ inputs.aws_account_id }}
         aws_region: ${{ inputs.aws_region }}
@@ -75,7 +85,7 @@ runs:
           service_name=${{ inputs.service_name }}
           environment_short_name=${{ inputs.environment_short_name }}
           artifacts_aws_account_id=${{ inputs.artifacts_aws_account_id }}
-          root_domain=${{ (inputs.environment_short_name == 'prod' || inputs.environment_short_name == 'prd' || inputs.environment == 'production') ? 'imagimaps.com' : format('%s.imagimaps.com', inputs.environment_short_name) }}
+          root_domain=${{ steps.domain.outputs.domain }}
         aws_role_arn: ${{ inputs.aws_role_arn }}
         aws_account_id: ${{ inputs.aws_account_id }}
         aws_region: ${{ inputs.aws_region }}
