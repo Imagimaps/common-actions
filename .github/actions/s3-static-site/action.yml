@@ -101,7 +101,7 @@ runs:
         main_domain="${{ steps.domain.outputs.name }}"
         
         # Initialize array with the main domain
-        all_domains=("$main_domain")
+        all_domains=()
         
         # Process additional subdomains if provided
         if [ -n "${{ inputs.subdomains }}" ]; then
@@ -135,10 +135,21 @@ runs:
         fi
         
         # Convert array to JSON
-        subdomains_json=$(printf '%s\n' "${all_domains[@]}" | jq -R . | jq -s .)
-        echo "subdomains_json=$subdomains_json" >> $GITHUB_OUTPUT
+        json_array="["
+        first=true
+        for domain in "${all_domains[@]}"; do
+          if [ "$first" = true ]; then
+            first=false
+          else
+            json_array+=","
+          fi
+          json_array+="\"$domain\""
+        done
+        json_array+="]"
+        
+        echo "subdomains_json=$json_array" >> $GITHUB_OUTPUT
         echo "subdomains_count=${#all_domains[@]}" >> $GITHUB_OUTPUT
-        echo "Configured domains: $subdomains_json" >> $GITHUB_STEP_SUMMARY
+        echo "Configured domains: $json_array" >> $GITHUB_STEP_SUMMARY
 
     - name: Bootstrap S3 Static Site Bucket for ${{ inputs.module }} ${{ inputs.environment }}
       if: ${{ inputs.destroy == 'false' }}

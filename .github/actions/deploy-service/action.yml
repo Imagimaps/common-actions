@@ -57,7 +57,7 @@ runs:
           service_name=${{ inputs.service_name }}
           environment_short_name=${{ inputs.environment_short_name }}
           artifacts_aws_account_id=${{ inputs.artifacts_aws_account_id }}
-          root_domain=${{ inputs.environment_short_name == 'prod' || inputs.environment_short_name == 'prd' || inputs.environment == 'production' ? 'imagimaps.com' : inputs.environment_short_name }}.imagimaps.com
+          root_domain=${{ (inputs.environment_short_name == 'prod' || inputs.environment_short_name == 'prd' || inputs.environment == 'production') ? 'imagimaps.com' : format('%s.imagimaps.com', inputs.environment_short_name) }}
         aws_role_arn: ${{ inputs.aws_role_arn }}
         aws_account_id: ${{ inputs.aws_account_id }}
         aws_region: ${{ inputs.aws_region }}
@@ -75,8 +75,19 @@ runs:
           service_name=${{ inputs.service_name }}
           environment_short_name=${{ inputs.environment_short_name }}
           artifacts_aws_account_id=${{ inputs.artifacts_aws_account_id }}
-          root_domain=${{ inputs.environment_short_name == 'prod' || inputs.environment_short_name == 'prd' || inputs.environment == 'production' ? 'imagimaps.com' : inputs.environment_short_name }}.imagimaps.com
+          root_domain=${{ (inputs.environment_short_name == 'prod' || inputs.environment_short_name == 'prd' || inputs.environment == 'production') ? 'imagimaps.com' : format('%s.imagimaps.com', inputs.environment_short_name) }}
         aws_role_arn: ${{ inputs.aws_role_arn }}
         aws_account_id: ${{ inputs.aws_account_id }}
         aws_region: ${{ inputs.aws_region }}
-        destroy: true
+        destroy: ${{ inputs.destroy }}
+
+    - name: Complete
+      if: always()
+      id: end
+      shell: bash
+      run: |
+        action_start_ts=${{ steps.start.outputs.ts }}
+        action_end_ts=$(date +%s)
+        action_duration=$((action_end_ts - action_start_ts))
+        echo "runtime=$action_duration" >> $GITHUB_OUTPUT
+        echo "Service ${{ inputs.service_name }}: $action_duration seconds" >> $GITHUB_STEP_SUMMARY
