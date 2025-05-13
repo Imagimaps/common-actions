@@ -22,3 +22,9 @@ variable "root_domain" {
   description = "The root domain name"
   type        = string
 }
+
+variable "additional_domain_names" {
+  description = "List of additional domain names to include in the certificate"
+  type        = list(string)
+  default     = []
+}

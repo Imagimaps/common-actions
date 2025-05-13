@@ -32,7 +32,8 @@ resource "aws_cloudfront_distribution" "cdn" {
   
   default_root_object = "index.html"
 
-  aliases = [var.fq_domain_name]
+  # Include the primary domain and all additional domains in the aliases
+  aliases = concat([var.fq_domain_name], var.additional_domain_names)
 
   custom_error_response {
     error_code            = 403

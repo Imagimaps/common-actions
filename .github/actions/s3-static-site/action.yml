@@ -14,6 +14,10 @@ inputs:
   sub_environment:
     description: The sub-environment to deploy the service to
     required: false
+  subdomains:
+    description: A comma-separated list of additional subdomains to include in the certificate and CloudFront distribution
+    required: false
+    default: ""
   aws_role_arn:
     description: The ARN of the role which can create and manage S3 buckets
     required: true
@@ -36,6 +40,12 @@ outputs:
   bucket-name:
     description: The name of the S3 bucket created
     value: ${{ steps.bucket-data.outputs.name }}
+  domain-name:
+    description: The primary domain name for the static site
+    value: ${{ steps.domain.outputs.name }}
+  subdomains:
+    description: The list of subdomains configured for the static site
+    value: ${{ steps.process-subdomains.outputs.subdomains_json }}
 
 runs:
   using: "composite"
@@ -60,7 +70,7 @@ runs:
       id: domain
       shell: bash
       run: |
-        if [[ "${{ inputs.environment_short_name }}" == "prod" || "${{ inputs.environment_short_name }}" == "prd" ]]; then
+        if [[ "${{ inputs.environment_short_name }}" == "prod" || "${{ inputs.environment_short_name }}" == "prd" || "${{ inputs.environment }}" == "production" ]]; then
           domain_name="${{ inputs.domain }}"
         else
           domain_name="${{ inputs.environment_short_name }}.${{ inputs.domain }}"
@@ -82,6 +92,53 @@ runs:
         fi
         echo "S3 Bucket Name: $domain_name" >> $GITHUB_STEP_SUMMARY
         echo "name=$domain_name" >> $GITHUB_OUTPUT
+
+    - name: Process Subdomains
+      id: process-subdomains
+      shell: bash
+      run: |
+        # Process the main domain
+        main_domain="${{ steps.domain.outputs.name }}"
+        
+        # Initialize array with the main domain
+        all_domains=("$main_domain")
+        
+        # Process additional subdomains if provided
+        if [ -n "${{ inputs.subdomains }}" ]; then
+          IFS=',' read -ra SUBDOMAINS <<< "${{ inputs.subdomains }}"
+          for subdomain in "${SUBDOMAINS[@]}"; do
+            # Trim whitespace
+            subdomain=$(echo "$subdomain" | xargs)
+            
+            # Validate subdomain format
+            if [[ ! "$subdomain" =~ ^[a-z0-9]([a-z0-9.-]*[a-z0-9])?$ ]]; then
+              echo "Subdomain '$subdomain' contains invalid characters. Skipping."
+              continue
+            fi
+            
+            # Create fully qualified domain name
+            # Don't prepend environment name for production environments
+            if [[ "${{ inputs.environment_short_name }}" == "prod" || "${{ inputs.environment_short_name }}" == "prd" || "${{ inputs.environment }}" == "production" ]]; then
+              fq_subdomain="${subdomain}.${{ inputs.domain }}"
+            else
+              fq_subdomain="${subdomain}.${{ inputs.environment_short_name }}.${{ inputs.domain }}"
+              if [ -n "${{ inputs.sub_environment }}" ]; then
+                fq_subdomain="${subdomain}.${{ inputs.sub_environment }}.${{ inputs.environment_short_name }}.${{ inputs.domain }}"
+              fi
+            fi
+            
+            # Add to array
+            all_domains+=("$fq_subdomain")
+            
+            echo "Added subdomain: $fq_subdomain" >> $GITHUB_STEP_SUMMARY
+          done
+        fi
+        
+        # Convert array to JSON
+        subdomains_json=$(printf '%s\n' "${all_domains[@]}" | jq -R . | jq -s .)
+        echo "subdomains_json=$subdomains_json" >> $GITHUB_OUTPUT
+        echo "subdomains_count=${#all_domains[@]}" >> $GITHUB_OUTPUT
+        echo "Configured domains: $subdomains_json" >> $GITHUB_STEP_SUMMARY
 
     - name: Bootstrap S3 Static Site Bucket for ${{ inputs.module }} ${{ inputs.environment }}
       if: ${{ inputs.destroy == 'false' }}
@@ -115,6 +172,7 @@ runs:
         tf_vars: |
           root_domain=${{ steps.domain.outputs.name }}
           requested_fq_domain=${{ steps.domain.outputs.name }}
+          additional_domain_names=${{ steps.process-subdomains.outputs.subdomains_json }}
         aws_role_arn: ${{ inputs.aws_role_arn }}
         aws_account_id: ${{ inputs.aws_account_id }}
         aws_region: ${{ inputs.aws_region }}
@@ -130,6 +188,7 @@ runs:
         tf_vars: |
           root_domain=${{ steps.domain.outputs.name }}
           fq_domain_name=${{ steps.domain.outputs.name }}
+          additional_domain_names=${{ steps.process-subdomains.outputs.subdomains_json }}
         aws_role_arn: ${{ inputs.aws_role_arn }}
         aws_account_id: ${{ inputs.aws_account_id }}
         aws_region: ${{ inputs.aws_region }}
@@ -145,6 +204,7 @@ runs:
         tf_vars: |
           root_domain=${{ steps.domain.outputs.name }}
           fq_domain_name=${{ steps.domain.outputs.name }}
+          additional_domain_names=${{ steps.process-subdomains.outputs.subdomains_json }}
         aws_role_arn: ${{ inputs.aws_role_arn }}
         aws_account_id: ${{ inputs.aws_account_id }}
         aws_region: ${{ inputs.aws_region }}

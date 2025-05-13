@@ -23,4 +23,8 @@ variable "fq_domain_name" {
   type        = string
 }
 
-#TODO: Add extra subdomains
+variable "additional_domain_names" {
+  description = "List of additional domain names to include in the CloudFront distribution"
+  type        = list(string)
+  default     = []
+}

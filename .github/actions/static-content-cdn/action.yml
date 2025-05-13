@@ -60,7 +60,7 @@ runs:
       id: domain
       shell: bash
       run: |
-        if [[ "${{ inputs.environment_short_name }}" == "prod" || "${{ inputs.environment_short_name }}" == "prd" ]]; then
+        if [[ "${{ inputs.environment_short_name }}" == "prod" || "${{ inputs.environment_short_name }}" == "prd" || "${{ inputs.environment }}" == "production" ]]; then
           domain_name="${{ inputs.domain }}"
         else
           domain_name="${{ inputs.environment_short_name }}.${{ inputs.domain }}"
