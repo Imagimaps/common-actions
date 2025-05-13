@@ -68,6 +68,7 @@ runs:
             domain_name="${inputs.sub_environment}.${domain_name}"
           fi
         fi
+        domain_name="cdn.$domain_name"
         if [[ ${#domain_name} -lt 3 || ${#domain_name} -gt 63 ]]; then
           echo "Bucket name must be between 3 and 63 characters long."
           exit 1
