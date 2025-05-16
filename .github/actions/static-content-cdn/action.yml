@@ -68,6 +68,7 @@ runs:
             domain_name="${inputs.sub_environment}.${domain_name}"
           fi
         fi
+        root_domain=$domain_name
         domain_name="cdn.$domain_name"
         if [[ ${#domain_name} -lt 3 || ${#domain_name} -gt 63 ]]; then
           echo "Bucket name must be between 3 and 63 characters long."
@@ -83,6 +84,7 @@ runs:
         fi
         echo "S3 Bucket Name: $domain_name" >> $GITHUB_STEP_SUMMARY
         echo "name=$domain_name" >> $GITHUB_OUTPUT
+        echo "root_domain=$root_domain" >> $GITHUB_OUTPUT
 
     - name: Bootstrap S3 Static Site Bucket for ${{ inputs.module }} ${{ inputs.environment }}
       if: ${{ inputs.destroy == 'false' }}
@@ -107,7 +109,7 @@ runs:
         tf_module_dir: ${{ env.ACTION_PATH }}/tf/cert
         tf_workspace: ${{ steps.domain.outputs.name }}
         tf_vars: |
-          root_domain=${{ inputs.environment_short_name }}.${{ inputs.domain }}
+          root_domain=${{ steps.domain.outputs.root_domain }}
           requested_fq_domain=${{ steps.domain.outputs.name }}
         aws_role_arn: ${{ inputs.aws_role_arn }}
         aws_account_id: ${{ inputs.aws_account_id }}
