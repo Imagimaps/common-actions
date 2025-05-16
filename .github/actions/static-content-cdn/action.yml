@@ -124,7 +124,7 @@ runs:
         tf_module_dir: ${{ env.ACTION_PATH }}/tf/cloudfront
         tf_workspace: ${{ steps.domain.outputs.name }}
         tf_vars: |
-          root_domain=${{ inputs.environment_short_name }}.${{ inputs.domain }}
+          root_domain=${{ steps.domain.outputs.root_domain }}
           fq_domain_name=${{ steps.domain.outputs.name }}
         aws_role_arn: ${{ inputs.aws_role_arn }}
         aws_account_id: ${{ inputs.aws_account_id }}
@@ -139,7 +139,7 @@ runs:
         tf_module_dir: ${{ env.ACTION_PATH }}/tf/cloudfront
         tf_workspace: ${{ steps.domain.outputs.name }}
         tf_vars: |
-          root_domain=${{ inputs.environment_short_name }}.${{ inputs.domain }}
+          root_domain=${{ steps.domain.outputs.root_domain }}
           fq_domain_name=${{ steps.domain.outputs.name }}
         aws_role_arn: ${{ inputs.aws_role_arn }}
         aws_account_id: ${{ inputs.aws_account_id }}
