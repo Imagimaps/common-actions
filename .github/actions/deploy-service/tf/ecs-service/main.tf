@@ -43,6 +43,10 @@ resource "aws_ecs_task_definition" "service" {
           value = "production"
         },
         {
+          name  = "DEPLOYED_ENV"
+          value = "${var.environment}"
+        },
+        {
           name  = "PORT"
           value = "${tostring(var.container_port)}"
         },
@@ -102,6 +106,10 @@ resource "aws_ecs_task_definition" "service" {
         {
           name  = "LOG_LEVEL"
           value = "info"
+        },
+        {
+          name  = "REMOTE_LOGGING_ENABLED"
+          value = "true"
         },
         {
           name  = "LOGGING_ENDPOINT"
