@@ -102,6 +102,14 @@ resource "aws_ecs_task_definition" "service" {
         {
           name  = "LOG_LEVEL"
           value = "info"
+        },
+        {
+          name  = "LOGGING_ENDPOINT"
+          value = "http://telemetry.${var.root_domain}:3100"
+        },
+        {
+          name  = "TRACING_ENDPOINT"
+          value = "[\"http://telemetry.${var.root_domain}:4317\", \"http://telemetry.${var.root_domain}:4318\"]"
         }
       ]
   }])
