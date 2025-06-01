@@ -23,6 +23,10 @@ inputs:
     description: The region where the ECR repository is located
     required: false
     default: ap-southeast-2
+  high_performance:
+    description: Whether to deploy the service in high performance mode
+    required: false
+    default: "false"
   destroy:
     description: Whether to destroy the service
     required: false
@@ -43,7 +47,7 @@ runs:
         echo "Deloying Service [${{ inputs.service_name }}]"
         echo "ACTION_PATH=$(realpath ${{ github.action_path }})" >> $GITHUB_ENV
         echo "Running in destroy mode: ${{ inputs.destroy }}"
-        
+
     - name: Set Domain Name
       id: domain
       shell: bash
@@ -52,6 +56,18 @@ runs:
           echo "domain=imagimaps.com" >> $GITHUB_OUTPUT
         else
           echo "domain=${{ inputs.environment_short_name }}.imagimaps.com" >> $GITHUB_OUTPUT
+        fi
+
+    - name: Set Container Performance Requirements
+      id: performance
+      shell: bash
+      run: |
+        echo "memory=512" >> $GITHUB_OUTPUT
+
+        if [[ "${{ inputs.high_performance }}" == "true" ]]; then
+          echo "cpu=512" >> $GITHUB_OUTPUT
+        else
+          echo "cpu=128" >> $GITHUB_OUTPUT
         fi
 
     - name: Create Fargate Service
@@ -68,6 +84,8 @@ runs:
           environment_short_name=${{ inputs.environment_short_name }}
           artifacts_aws_account_id=${{ inputs.artifacts_aws_account_id }}
           root_domain=${{ steps.domain.outputs.domain }}
+          container_memory=${{ steps.performance.outputs.memory }}
+          container_cpu=${{ steps.performance.outputs.cpu }}
         aws_role_arn: ${{ inputs.aws_role_arn }}
         aws_account_id: ${{ inputs.aws_account_id }}
         aws_region: ${{ inputs.aws_region }}
@@ -86,6 +104,8 @@ runs:
           environment_short_name=${{ inputs.environment_short_name }}
           artifacts_aws_account_id=${{ inputs.artifacts_aws_account_id }}
           root_domain=${{ steps.domain.outputs.domain }}
+          container_memory=${{ steps.performance.outputs.memory }}
+          container_cpu=${{ steps.performance.outputs.cpu }}
         aws_role_arn: ${{ inputs.aws_role_arn }}
         aws_account_id: ${{ inputs.aws_account_id }}
         aws_region: ${{ inputs.aws_region }}
