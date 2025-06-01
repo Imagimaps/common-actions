@@ -41,3 +41,26 @@ resource "aws_s3_bucket_policy" "this" {
   bucket = aws_s3_bucket.this.id
   policy = data.aws_iam_policy_document.bucket_policy.json
 }
+
+resource "aws_s3_bucket_cors_configuration" "cdn_dev_imagimaps_cors" {
+  bucket = aws_s3_bucket.this.id
+
+  cors_rule {
+    allowed_headers = ["*"]
+    allowed_methods = ["GET", "PUT", "POST", "DELETE", "HEAD"]
+    allowed_origins = [
+      "https://dev.imagimaps.com",
+      "https://*.dev.imagimaps.com",
+      "https://imagimaps.com",
+      "https://*.imagimaps.com"
+    ]
+    expose_headers  = [
+      "ETag",
+      "x-amz-meta-custom-header",
+      "x-amz-server-side-encryption",
+      "x-amz-request-id",
+      "x-amz-id-2"
+    ]
+    max_age_seconds = 3000
+  }
+}
