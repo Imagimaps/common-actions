@@ -95,6 +95,7 @@ resource "aws_cloudfront_distribution" "cdn" {
 
     viewer_protocol_policy = "allow-all"
   }
+  
   ordered_cache_behavior {
     allowed_methods  = ["HEAD", "DELETE", "POST", "GET", "OPTIONS", "PUT", "PATCH"]
     cached_methods   = ["GET", "HEAD"]
@@ -105,6 +106,38 @@ resource "aws_cloudfront_distribution" "cdn" {
     origin_request_policy_id = aws_cloudfront_origin_request_policy.images.id
 
     viewer_protocol_policy = "allow-all"
+  }
+  
+  # WebSocket cache behavior
+  dynamic "ordered_cache_behavior" {
+    for_each = var.enable_websockets ? [1] : []
+    content {
+      path_pattern     = var.websocket_path_pattern
+      allowed_methods  = ["HEAD", "DELETE", "POST", "GET", "OPTIONS", "PUT", "PATCH"]
+      cached_methods   = ["GET", "HEAD"]
+      target_origin_id = "websocket-${var.environment}"
+      
+      # Use the WebSocket specific origin request policy
+      origin_request_policy_id = aws_cloudfront_origin_request_policy.websockets.id
+      
+      # Don't cache WebSocket connections
+      forwarded_values {
+        query_string = true
+        headers      = ["*"]
+
+        cookies {
+          forward = "all"
+        }
+      }
+      
+      # Allow all protocols for WebSockets
+      viewer_protocol_policy = "allow-all"
+      
+      # Set appropriate TTLs for WebSocket connections
+      min_ttl     = 0
+      default_ttl = 0  # Don't cache WebSocket connections
+      max_ttl     = 0
+    }
   }
 
   restrictions {

@@ -49,3 +49,35 @@ resource "aws_cloudfront_origin_request_policy" "images" {
     }
   }
 }
+
+# WebSocket specific policies
+resource "aws_cloudfront_origin_request_policy" "websockets" {
+  name    = "websockets-origin-request-policy"
+  comment = "Origin request policy for WebSocket connections"
+  cookies_config {
+    cookie_behavior = "all"
+    cookies {
+      items = []
+    }
+  }
+  headers_config {
+    header_behavior = "whitelist"
+    headers {
+      items = [
+        "Sec-WebSocket-Key",
+        "Sec-WebSocket-Version",
+        "Sec-WebSocket-Protocol",
+        "Sec-WebSocket-Accept",
+        "Sec-WebSocket-Extensions",
+        "Upgrade",
+        "Connection"
+      ]
+    }
+  }
+  query_strings_config {
+    query_string_behavior = "all"
+    query_strings {
+      items = []
+    }
+  }
+}

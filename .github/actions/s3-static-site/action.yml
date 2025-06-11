@@ -36,6 +36,18 @@ inputs:
     description: Whether to destroy the bucket and CloudFront distribution
     required: false
     default: "false"
+  enable_websockets:
+    description: Whether to enable WebSocket support in the CloudFront distribution
+    required: false
+    default: "false"
+  websocket_domain:
+    description: The domain name for the WebSocket origin (if different from the default)
+    required: false
+    default: ""
+  websocket_path_pattern:
+    description: The path pattern for WebSocket connections
+    required: false
+    default: "/ws/*"
 outputs:
   bucket-name:
     description: The name of the S3 bucket created
@@ -200,6 +212,9 @@ runs:
           root_domain=${{ steps.domain.outputs.name }}
           fq_domain_name=${{ steps.domain.outputs.name }}
           additional_domain_names=${{ steps.process-subdomains.outputs.subdomains_json }}
+          enable_websockets=${{ inputs.enable_websockets }}
+          websocket_domain=${{ inputs.websocket_domain }}
+          websocket_path_pattern=${{ inputs.websocket_path_pattern }}
         aws_role_arn: ${{ inputs.aws_role_arn }}
         aws_account_id: ${{ inputs.aws_account_id }}
         aws_region: ${{ inputs.aws_region }}
@@ -216,6 +231,9 @@ runs:
           root_domain=${{ steps.domain.outputs.name }}
           fq_domain_name=${{ steps.domain.outputs.name }}
           additional_domain_names=${{ steps.process-subdomains.outputs.subdomains_json }}
+          enable_websockets=${{ inputs.enable_websockets }}
+          websocket_domain=${{ inputs.websocket_domain }}
+          websocket_path_pattern=${{ inputs.websocket_path_pattern }}
         aws_role_arn: ${{ inputs.aws_role_arn }}
         aws_account_id: ${{ inputs.aws_account_id }}
         aws_region: ${{ inputs.aws_region }}

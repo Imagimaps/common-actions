@@ -28,3 +28,15 @@ variable "additional_domain_names" {
   type        = list(string)
   default     = []
 }
+
+variable "enable_websockets" {
+  description = "Whether to enable WebSocket support"
+  type        = bool
+  default     = false
+}
+
+variable "websocket_path_pattern" {
+  description = "The path pattern for WebSocket connections"
+  type        = string
+  default     = "/ws/*"
+}
